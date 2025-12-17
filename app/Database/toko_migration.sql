@@ -1,0 +1,40 @@
+-- Migration untuk table toko (store profile)
+-- Database: isb_marketplace
+
+CREATE TABLE IF NOT EXISTS `toko` (
+  `id_toko` int(11) NOT NULL AUTO_INCREMENT,
+  `nama_toko` varchar(255) NOT NULL,
+  `status_toko` enum('verified_seller','official_store') DEFAULT 'verified_seller',
+  `logo_toko` varchar(255) DEFAULT NULL,
+  `banner_toko` varchar(255) DEFAULT NULL,
+  `deskripsi_toko` text DEFAULT NULL,
+  `alamat_toko` text DEFAULT NULL,
+  `kota` varchar(100) DEFAULT NULL,
+  `provinsi` varchar(100) DEFAULT NULL,
+  `kode_pos` varchar(10) DEFAULT NULL,
+  `negara` varchar(100) DEFAULT 'Indonesia',
+  `email_cs` varchar(255) DEFAULT NULL,
+  `whatsapp_cs` varchar(20) DEFAULT NULL,
+  `jam_operasional_buka` time DEFAULT NULL,
+  `jam_operasional_tutup` time DEFAULT NULL,
+  `nama_admin` varchar(255) DEFAULT NULL,
+  `username_admin` varchar(100) DEFAULT NULL,
+  `email_admin` varchar(255) DEFAULT NULL,
+  `telepon_admin` varchar(20) DEFAULT NULL,
+  `rating` decimal(3,1) DEFAULT 0.0,
+  `total_ulasan` int(11) DEFAULT 0,
+  `total_produk` int(11) DEFAULT 0,
+  `total_pengikut` int(11) DEFAULT 0,
+  `total_penjualan` int(11) DEFAULT 0,
+  `pendapatan` decimal(15,2) DEFAULT 0.00,
+  `email_verified` tinyint(1) DEFAULT 0,
+  `telepon_verified` tinyint(1) DEFAULT 0,
+  `identitas_verified` tinyint(1) DEFAULT 0,
+  `tanggal_bergabung` date DEFAULT NULL,
+  `login_terakhir` datetime DEFAULT NULL,
+  `status_akun` enum('aktif','nonaktif') DEFAULT 'aktif',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id_toko`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+

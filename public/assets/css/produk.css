@@ -1,0 +1,42 @@
+/* Produk card styles */
+.produk-card {
+  border-radius: 12px;
+  background: #fff;
+  padding: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: 0.2s;
+}
+
+.produk-card:hover {
+  transform: translateY(-4px);
+}
+
+.produk-price {
+  font-weight: 700;
+  color: #006edc;
+}
+
+.produk-card img {
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+
+.produk-card p.title {
+  font-size: 14px;
+  height: 38px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.produk-card .btn {
+  border-radius: 10px;
+}
+
+.price-badge {
+  display: inline-block;
+  padding: 6px 10px;
+  background: linear-gradient(90deg, #006edc, #0057b8);
+  color: #fff;
+  font-weight: 700;
+  border-radius: 8px;
+}

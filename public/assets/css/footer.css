@@ -1,0 +1,27 @@
+/* Footer styles */
+.footer-custom {
+  background: #0e1b2d;
+  color: #a9b3c1;
+  padding: 40px 0;
+  margin-top: 60px;
+}
+.footer-custom h5 {
+  color: #fff;
+  margin-bottom: 15px;
+}
+.footer-custom a {
+  display: block;
+  color: #a9b3c1;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+.footer-custom a:hover {
+  color: #fff;
+}
+.footer-bottom {
+  border-top: 1px solid #2c3a52;
+  padding-top: 15px;
+  text-align: center;
+  margin-top: 20px;
+  color: #788397;
+}

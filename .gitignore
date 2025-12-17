@@ -1,0 +1,57 @@
+# CodeIgniter 4
+# Created by CodeIgniter installer
+
+# Environment
+.env
+env
+
+# Composer
+/vendor/
+composer.phar
+composer.lock
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Logs
+writable/logs/*
+!writable/logs/index.html
+!writable/logs/.htaccess
+
+# Cache
+writable/cache/*
+!writable/cache/index.html
+!writable/cache/.htaccess
+
+# Session
+writable/session/*
+!writable/session/index.html
+!writable/session/.htaccess
+
+# Uploads (keep structure but ignore files)
+public/uploads/*
+!public/uploads/.htaccess
+!public/uploads/index.html
+
+# Testing
+phpunit.xml
+.phpunit.result.cache
+
+# Build
+node_modules/
+npm-debug.log
+
+# Temporary files
+*.tmp
+*.bak
+*.log
+

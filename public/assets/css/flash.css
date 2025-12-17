@@ -1,0 +1,13 @@
+/* Flash sale / banner styles */
+.flash-banner {
+  padding: 25px;
+  background: #006edc;
+  border-radius: 15px;
+  color: #fff;
+}
+
+.flash-banner a.btn-light {
+  background: #ffffff33;
+  color: #fff;
+  border: none;
+}

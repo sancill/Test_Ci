@@ -1,0 +1,23 @@
+/* Navbar styles */
+.navbar-custom {
+  background: #ffffff;
+  padding: 15px 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-custom .brand {
+  font-weight: 700;
+  font-size: 20px;
+  color: #006edc;
+}
+
+.navbar-custom a {
+  color: #333;
+  font-size: 15px;
+  font-weight: 500;
+  margin-left: 20px;
+}
+
+.navbar-custom a:hover {
+  color: #006edc;
+}
