@@ -151,7 +151,7 @@ $currentMenus = $menuItems[$category] ?? $menuItems['elektronik'];
                     <img src="/assets/img/gambarprd2.png" alt="Tas Ransel Kampus" />
                 </a>
                 <div class="product-card__body">
-                    <h3>Tas Ransel Kampus</h3>
+                    <h3>Mwing</h3>
                     <div class="rating">
                         <span class="stars" aria-label="Rating 4.2 dari 5">
                             <img src="/assets/img/stars.png" alt="" />
