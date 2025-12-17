@@ -476,42 +476,63 @@ class Admin extends BaseController
             'status_produk' => $this->request->getPost('status_produk') ?? 'draft',
         ];
 
+        // Insert product first
+        $id_produk = $this->produkModel->insert($data);
+        
+        if (!$id_produk) {
+            return redirect()->back()->withInput()->with('error', 'Gagal menyimpan produk');
+        }
+
         // Handle product images
         $files = $this->request->getFiles();
-        if (isset($files['gambar_produk']) && !empty($files['gambar_produk'])) {
-            $uploadedFiles = [];
-            foreach ($files['gambar_produk'] as $file) {
-                if ($file->isValid() && !$file->hasMoved()) {
-                    $newName = $file->getRandomName();
-                    $file->move(ROOTPATH . 'public/uploads/produk', $newName);
-                    $uploadedFiles[] = 'uploads/produk/' . $newName;
+        $uploadedFiles = [];
+        
+        // Ensure upload directory exists
+        $uploadPath = ROOTPATH . 'public/uploads/produk';
+        if (!is_dir($uploadPath)) {
+            mkdir($uploadPath, 0755, true);
+        }
+        
+        if (isset($files['gambar_produk'])) {
+            $fileArray = $files['gambar_produk'];
+            
+            // Handle both single file and multiple files
+            // In CodeIgniter, multiple files come as an array
+            if (!is_array($fileArray)) {
+                // Single file upload
+                if ($fileArray->isValid() && !$fileArray->hasMoved()) {
+                    $newName = $fileArray->getRandomName();
+                    if ($fileArray->move($uploadPath, $newName)) {
+                        $uploadedFiles[] = 'uploads/produk/' . $newName;
+                    }
                 }
-            }
-
-            // Insert product first
-            $id_produk = $this->produkModel->insert($data);
-
-            // Insert product images
-            if ($id_produk && !empty($uploadedFiles)) {
-                $fotoModel = new \App\Models\ProdukFotoModel();
-                foreach ($uploadedFiles as $index => $foto) {
-                    $fotoModel->insert([
-                        'id_produk' => $id_produk,
-                        'foto_produk' => $foto,
-                        'urutan' => $index + 1,
-                    ]);
-                }
-            }
-
-            return redirect()->to('admin/produk')->with('success', 'Produk berhasil ditambahkan');
-        } else {
-            // Insert product without images
-            if ($this->produkModel->insert($data)) {
-                return redirect()->to('admin/produk')->with('success', 'Produk berhasil ditambahkan');
             } else {
-                return redirect()->back()->withInput()->with('error', 'Gagal menyimpan produk');
+                // Multiple file uploads
+                foreach ($fileArray as $file) {
+                    // Skip empty file inputs (when user doesn't select a file)
+                    if ($file && is_object($file) && $file->isValid() && !$file->hasMoved() && $file->getError() === UPLOAD_ERR_OK) {
+                        $newName = $file->getRandomName();
+                        if ($file->move($uploadPath, $newName)) {
+                            $uploadedFiles[] = 'uploads/produk/' . $newName;
+                        }
+                    }
+                }
             }
         }
+
+        // Insert product images
+        if (!empty($uploadedFiles)) {
+            $fotoModel = new \App\Models\ProdukFotoModel();
+            foreach ($uploadedFiles as $index => $foto) {
+                $fotoModel->insert([
+                    'id_produk' => $id_produk,
+                    'foto_produk' => $foto,
+                    'urutan' => $index + 1,
+                ]);
+            }
+        }
+
+        return redirect()->to('admin/produk')->with('success', 'Produk berhasil ditambahkan');
     }
 
     public function update_produk($id)

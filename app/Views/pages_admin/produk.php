@@ -853,14 +853,25 @@
                                             <?php
                                             $produkModel = new \App\Models\ProdukModel();
                                             $fotos = $produkModel->getProdukFoto($p['id_produk']);
-                                            $fotoUtama = !empty($fotos) ? base_url($fotos[0]['foto_produk']) : base_url('assets/img/product-placeholder.png');
+                                            
+                                            // Determine the image URL
+                                            if (!empty($fotos) && !empty($fotos[0]['foto_produk'])) {
+                                                $fotoPath = $fotos[0]['foto_produk'];
+                                                // Ensure path doesn't start with / or have double slashes
+                                                $fotoPath = ltrim($fotoPath, '/');
+                                                // Use the image path directly - browser will handle 404 if file doesn't exist
+                                                $fotoUtama = base_url($fotoPath);
+                                            } else {
+                                                // Use a generic placeholder or a default product image
+                                                $fotoUtama = base_url('assets/img/product.png');
+                                            }
                                             ?>
                                             <tr>
                                                 <td><input type="checkbox"></td>
                                                 <td>
                                                     <div class="product-cell">
                                                         <div class="product-image">
-                                                            <img src="<?= $fotoUtama ?>" alt="<?= esc($p['nama_produk']) ?>">
+                                                            <img src="<?= $fotoUtama ?>" alt="<?= esc($p['nama_produk']) ?>" onerror="this.src='<?= base_url('assets/img/product.png') ?>'">
                                                         </div>
                                                         <div class="product-info">
                                                             <p class="product-name"><?= esc($p['nama_produk']) ?></p>
@@ -1205,21 +1216,10 @@
             uploadArea.classList.remove('dragover');
             const files = e.dataTransfer.files;
             if (files.length > 0) {
-                fileInput.files = files;
+                // Add dropped files to existing selection
                 handleFileSelect(files);
             }
         });
-
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                handleFileSelect(e.target.files);
-            }
-        });
-
-        function handleFileSelect(files) {
-            // You can add preview functionality here
-            console.log('Files selected:', files);
-        }
 
         // Calculate harga setelah diskon
         function calculateHargaSetelahDiskon() {
@@ -1318,32 +1318,58 @@
         }
 
         // Image preview functionality
+        let selectedFiles = [];
+
         function handleFileSelect(files) {
             const previewContainer = document.getElementById('imagePreview');
-            previewContainer.innerHTML = '';
             
-            Array.from(files).forEach((file, index) => {
-                if (file.type.startsWith('image/')) {
+            // Add new files to selectedFiles array
+            Array.from(files).forEach((file) => {
+                // Check if file already exists (by name and size)
+                const exists = selectedFiles.some(f => f.name === file.name && f.size === file.size);
+                if (!exists && file.type.startsWith('image/')) {
+                    selectedFiles.push(file);
+                    
                     const reader = new FileReader();
                     reader.onload = function(e) {
                         const previewItem = document.createElement('div');
                         previewItem.className = 'file-preview-item';
+                        previewItem.setAttribute('data-filename', file.name);
+                        previewItem.setAttribute('data-filesize', file.size);
                         previewItem.innerHTML = `
-                            <img src="${e.target.result}" alt="Preview ${index + 1}">
-                            <button type="button" class="remove-btn" onclick="removePreview(this)">×</button>
+                            <img src="${e.target.result}" alt="Preview">
+                            <button type="button" class="remove-btn" onclick="removePreview(this, '${file.name}', ${file.size})">×</button>
                         `;
                         previewContainer.appendChild(previewItem);
                     };
                     reader.readAsDataURL(file);
                 }
             });
+            
+            // Update file input with selectedFiles
+            updateFileInput();
         }
 
-        function removePreview(btn) {
+        function updateFileInput() {
+            const dataTransfer = new DataTransfer();
+            selectedFiles.forEach(file => {
+                dataTransfer.items.add(file);
+            });
+            fileInput.files = dataTransfer.files;
+        }
+
+        function removePreview(btn, filename, filesize) {
+            // Remove from selectedFiles array
+            selectedFiles = selectedFiles.filter(f => !(f.name === filename && f.size === filesize));
+            
+            // Remove preview element
             btn.parentElement.remove();
+            
+            // Update file input
+            updateFileInput();
         }
 
-        // Update file input handler
+        // File input change handler (only one needed)
         fileInput.addEventListener('change', (e) => {
             if (e.target.files.length > 0) {
                 handleFileSelect(e.target.files);
