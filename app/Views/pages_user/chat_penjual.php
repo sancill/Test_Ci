@@ -1,11 +1,11 @@
 <div style="max-width: 1280px; margin: 0 auto; padding: 40px 20px;">
     <div style="background: white; padding: 32px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
         <div style="display: flex; gap: 24px; margin-bottom: 32px; align-items: center;">
-            <img src="assets/img/logo.png" alt="Foto Penjual"
+            <img src="<?= !empty($toko['logo_toko']) ? base_url($toko['logo_toko']) : base_url('assets/img/logo.png') ?>" alt="<?= !empty($toko['nama_toko']) ? esc($toko['nama_toko']) : 'Foto Penjual' ?>"
                 style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;">
             <div>
-                <h1 style="margin-bottom: 8px;">Nama Penjual</h1>
-                <p style="color: #6b7280;">Deskripsi penjual atau toko disini</p>
+                <h1 style="margin-bottom: 8px;"><?= !empty($toko['nama_toko']) ? esc($toko['nama_toko']) : 'Nama Penjual' ?></h1>
+                <p style="color: #6b7280;"><?= !empty($toko['deskripsi_toko']) ? esc($toko['deskripsi_toko']) : 'Deskripsi penjual atau toko disini' ?></p>
             </div>
         </div>
 
@@ -18,7 +18,19 @@
                     berikut:
                 </p>
                 <div style="background: white; padding: 16px; border-radius: 8px;">
-                    <p><strong>Bank Akun:</strong> BCA - 1234567890</p>
+                    <?php if (!empty($toko)): ?>
+                        <?php if (!empty($toko['no_rekening'])): ?>
+                            <p><strong>Bank Akun:</strong> <?= esc($toko['no_rekening']) ?></p>
+                        <?php endif; ?>
+                        <?php if (!empty($toko['no_telepon'])): ?>
+                            <p><strong>Telepon:</strong> <?= esc($toko['no_telepon']) ?></p>
+                        <?php endif; ?>
+                        <?php if (!empty($toko['email'])): ?>
+                            <p><strong>Email:</strong> <?= esc($toko['email']) ?></p>
+                        <?php endif; ?>
+                    <?php else: ?>
+                        <p><strong>Bank Akun:</strong> BCA - 1234567890</p>
+                    <?php endif; ?>
                 </div>
             </div>
 

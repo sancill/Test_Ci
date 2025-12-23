@@ -19,12 +19,20 @@ $routes->get('/', 'Home::index');
 // User routes
 $routes->get('Home/index', 'Home::index');
 $routes->get('produk', 'Home::produk');
+$routes->get('produk/(:num)', 'Home::produk_detail/$1');
 $routes->get('chat_penjual', 'Home::chatPenjual');
-$routes->get('cart', 'Home::cart');
-$routes->get('pesan', 'Home::pesan');
+$routes->get('cart', 'Cart::index');
+$routes->post('cart/add', 'Cart::add');
+$routes->post('cart/update', 'Cart::update_quantity');
+$routes->post('cart/remove', 'Cart::remove');
+$routes->get('pesan', 'Pesan::index');
+$routes->post('pesan/checkout', 'Pesan::checkout');
+$routes->post('pesan/validate_voucher', 'Pesan::validate_voucher');
+$routes->get('pesan/sukses/(:num)', 'Pesan::sukses/$1');
 $routes->get('test', 'Home::test');
 $routes->get('profile', 'Home::profile');
 $routes->get('kategori', 'Home::kategori');
+$routes->get('logout', 'Home::logout');
 
 // Admin routes
 $routes->get('admin/dashboard', 'Admin::dashboard');

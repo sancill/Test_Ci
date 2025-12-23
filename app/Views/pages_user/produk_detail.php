@@ -331,21 +331,23 @@ body {
     <nav class="breadcrumbs">
         <a href="<?= base_url() ?>">Beranda</a>
         <img src="<?= base_url('assets/img/iconpanah.png') ?>" alt=">" />
-        <a href="#"><?= esc($produk['nama_kategori'] ?? 'Kategori') ?></a>
-        <?php if (!empty($produk['nama_menu'])): ?>
+        <?php if (!empty($produk['nama_kategori'])): ?>
+            <a href="<?= base_url('kategori?kategori=' . $produk['id_kategori']) ?>"><?= esc($produk['nama_kategori']) ?></a>
             <img src="<?= base_url('assets/img/iconpanah.png') ?>" alt=">" />
-            <a href="#"><?= esc($produk['nama_menu']) ?></a>
         <?php endif; ?>
-        <img src="<?= base_url('assets/img/iconpanah.png') ?>" alt=">" />
-        <span class="current">Detail Produk</span>
+        <?php if (!empty($produk['nama_menu'])): ?>
+            <a href="<?= base_url('kategori?kategori=' . $produk['id_kategori'] . '&menu=' . $produk['id_menu']) ?>"><?= esc($produk['nama_menu']) ?></a>
+            <img src="<?= base_url('assets/img/iconpanah.png') ?>" alt=">" />
+        <?php endif; ?>
+        <span class="current"><?= esc($produk['nama_produk']) ?></span>
     </nav>
 
     <main class="product-main">
         <div class="product-container">
             <div class="product-content">
                 <div class="product-images">
-                    <?php if (!empty($fotos)): ?>
-                        <img src="<?= base_url($fotos[0]['foto_produk']) ?>" alt="<?= esc($produk['nama_produk']) ?>" class="product-main-image" id="mainImage" />
+                    <?php if (!empty($fotos) && isset($fotos[0]) && isset($fotos[0]['foto_produk'])): ?>
+                        <img src="<?= base_url($fotos[0]['foto_produk']) ?>" alt="<?= esc($produk['nama_produk'] ?? 'Produk') ?>" class="product-main-image" id="mainImage" />
                         <div class="product-thumbnails" id="thumbnailContainer">
                             <?php foreach ($fotos as $index => $foto): ?>
                                 <img src="<?= base_url($foto['foto_produk']) ?>" alt="Thumbnail <?= $index + 1 ?>" 
@@ -378,52 +380,102 @@ body {
                         <?php if (!empty($toko) && $toko['status_toko'] === 'official_store'): ?>
                             <span class="product-badge official">Official Store</span>
                         <?php endif; ?>
-                        <?php if ($produk['stok'] > 0): ?>
+                        <?php if (isset($produk['stok']) && $produk['stok'] > 0): ?>
                             <span class="product-badge stock">Ready Stock</span>
                         <?php endif; ?>
                     </div>
                     <h1 class="product-title"><?= esc($produk['nama_produk']) ?></h1>
                     
+                    <?php if (!empty($produk['nama_kategori']) || !empty($produk['nama_menu'])): ?>
+                        <div style="margin-bottom: 16px; font-size: 14px; color: #64748b;">
+                            <?php if (!empty($produk['nama_kategori'])): ?>
+                                <span>Kategori: <strong><?= esc($produk['nama_kategori']) ?></strong></span>
+                            <?php endif; ?>
+                            <?php if (!empty($produk['nama_menu'])): ?>
+                                <span style="margin-left: 16px;">Menu: <strong><?= esc($produk['nama_menu']) ?></strong></span>
+                            <?php endif; ?>
+                        </div>
+                    <?php endif; ?>
+                    
                     <div class="product-price-box">
                         <div class="price-row">
-                            <?php if ($produk['harga_setelah_diskon'] > 0 && $produk['harga_setelah_diskon'] < $produk['harga_awal']): ?>
+                            <?php if (isset($produk['harga_setelah_diskon']) && isset($produk['harga_awal']) && $produk['harga_setelah_diskon'] > 0 && $produk['harga_setelah_diskon'] < $produk['harga_awal']): ?>
                                 <span class="price-current">Rp <?= number_format($produk['harga_setelah_diskon'], 0, ',', '.') ?></span>
                                 <span class="price-old">Rp <?= number_format($produk['harga_awal'], 0, ',', '.') ?></span>
                             <?php else: ?>
-                                <span class="price-current">Rp <?= number_format($produk['harga_awal'], 0, ',', '.') ?></span>
+                                <span class="price-current">Rp <?= number_format($produk['harga_awal'] ?? 0, 0, ',', '.') ?></span>
                             <?php endif; ?>
                         </div>
-                        <?php if ($produk['harga_setelah_diskon'] > 0 && $produk['harga_setelah_diskon'] < $produk['harga_awal']): ?>
-                            <?php
-                            $diskonPersen = (($produk['harga_awal'] - $produk['harga_setelah_diskon']) / $produk['harga_awal']) * 100;
+                        <?php if (isset($produk['harga_setelah_diskon']) && isset($produk['harga_awal']) && $produk['harga_setelah_diskon'] > 0 && $produk['harga_setelah_diskon'] < $produk['harga_awal']): ?>
+                            <?php 
+                            $hargaAwal = $produk['harga_awal'] ?? 0;
+                            $hargaDiskon = $produk['harga_setelah_diskon'] ?? 0;
+                            $diskonPersen = $hargaAwal > 0 ? (($hargaAwal - $hargaDiskon) / $hargaAwal) * 100 : 0;
                             ?>
                             <span class="discount-badge">Hemat <?= round($diskonPersen) ?>%</span>
                         <?php endif; ?>
                     </div>
 
-                    <!-- Varian Produk (jika ada varian dengan gambar) -->
-                    <?php 
-                    $varianDenganGambar = array_filter($varianList ?? [], function($v) {
-                        return !empty($v['gambar_varian']) && is_array($v['gambar_varian']) && count($v['gambar_varian']) > 0;
-                    });
-                    ?>
-                    <?php if (!empty($varianDenganGambar)): ?>
+                    <!-- Varian Produk -->
+                    <?php if (!empty($varianList)): ?>
                         <div class="variant-section" style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #E5E7EB;">
                             <h3 style="font-size: 16px; font-weight: 600; color: #1F2937; margin-bottom: 12px;">Pilih Varian</h3>
                             <div class="variant-options" style="display: flex; flex-wrap: wrap; gap: 12px;">
-                                <?php foreach ($varianDenganGambar as $index => $varian): ?>
+                                <?php foreach ($varianList as $index => $varian): ?>
+                                    <?php 
+                                    $startIndex = isset($varianImageIndices[$varian['id_varian']]) ? $varianImageIndices[$varian['id_varian']] : 0;
+                                    $hargaDisplay = isset($produk['harga_display']) ? $produk['harga_display'] : (isset($produk['harga_setelah_diskon']) && $produk['harga_setelah_diskon'] > 0 ? $produk['harga_setelah_diskon'] : ($produk['harga_awal'] ?? 0));
+                                    $hargaVarian = $hargaDisplay + ($varian['harga_tambahan'] ?? 0);
+                                    ?>
                                     <button type="button" 
                                             class="variant-option" 
                                             data-varian-id="<?= $varian['id_varian'] ?>"
-                                            data-start-index="<?= $varianImageIndices[$varian['id_varian']] ?? 0 ?>"
-                                            onclick="selectVariant(<?= $varian['id_varian'] ?>, <?= $varianImageIndices[$varian['id_varian']] ?? 0 ?>, this)"
+                                            data-harga="<?= $hargaVarian ?>"
+                                            data-stok="<?= $varian['stok_varian'] ?? $produk['stok'] ?>"
+                                            data-start-index="<?= $startIndex ?>"
+                                            onclick="selectVariant(<?= $varian['id_varian'] ?>, <?= $startIndex ?>, <?= $hargaVarian ?>, <?= $varian['stok_varian'] ?? $produk['stok'] ?>, this)"
                                             style="padding: 10px 16px; border: 2px solid #D1D5DB; background: white; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; color: #374151; transition: all 0.2s;">
                                         <?= esc($varian['nama_varian']) ?>: <?= esc($varian['nilai_varian']) ?>
+                                        <?php if ($varian['harga_tambahan'] > 0): ?>
+                                            <span style="font-size: 12px; color: #059669;">(+Rp <?= number_format($varian['harga_tambahan'], 0, ',', '.') ?>)</span>
+                                        <?php endif; ?>
                                     </button>
                                 <?php endforeach; ?>
                             </div>
                         </div>
                     <?php endif; ?>
+
+                    <!-- Quantity Section -->
+                    <div class="quantity-section" style="margin-top: 24px;">
+                        <div style="font-weight: 600; color: #0f172a; font-size: 14px; margin-bottom: 12px;">Jumlah:</div>
+                        <div class="quantity-control" style="display: flex; align-items: center; gap: 16px;">
+                            <div class="quantity-input-group" style="display: flex; border: 2px solid #d1d5db; border-radius: 8px; width: 160px;">
+                                <button type="button" class="quantity-btn" onclick="updateQuantity(-1)" style="width: 46px; height: 44px; background: transparent; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                                    <img src="<?= base_url('assets/img/minus.png') ?>" alt="Decrease" style="width: 14px; height: 16px;" />
+                                </button>
+                                <input type="number" name="quantity" id="quantityInput" class="quantity-input" 
+                                       value="1" min="1" max="<?= isset($produk['stok']) ? $produk['stok'] : 1 ?>" readonly 
+                                       style="width: 64px; height: 44px; border-left: 2px solid #d1d5db; border-right: 2px solid #d1d5db; border-top: none; border-bottom: none; text-align: center; font-size: 16px; font-weight: 700; color: #0f172a;" />
+                                <button type="button" class="quantity-btn" onclick="updateQuantity(1)" style="width: 46px; height: 44px; background: transparent; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                                    <img src="<?= base_url('assets/img/plus.png') ?>" alt="Increase" style="width: 14px; height: 16px;" />
+                                </button>
+                            </div>
+                            <span class="stock-info" id="stockInfo" style="color: #64748b; font-weight: 700; font-size: 14px;">
+                                Stok: <?= isset($produk['stok']) ? $produk['stok'] : 0 ?> unit
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Product Actions -->
+                    <div class="product-actions" style="display: flex; gap: 12px; margin-top: 24px;">
+                        <button class="btn-cart" onclick="addToCart()" style="background: #1e40af; color: white; border: none; border-radius: 12px; padding: 18px 24px; font-size: 16px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; flex: 1;">
+                            <img src="<?= base_url('assets/img/keranjang.png') ?>" alt="Cart" style="width: 18px; height: 18px;" />
+                            Tambah ke Keranjang
+                        </button>
+                        <button class="btn-order" onclick="buyNow()" style="background: #1e40af; color: white; border: none; border-radius: 12px; padding: 18px 24px; font-size: 16px; font-weight: 600; cursor: pointer; flex: 1;">
+                            Beli Sekarang
+                        </button>
+                    </div>
 
                     <?php if (!empty($produk['deskripsi_produk'])): ?>
                         <div class="description-section">
@@ -466,7 +518,11 @@ body {
             }
         }
         
-        function selectVariant(varianId, startIndex, buttonElement) {
+        let selectedVarianId = null;
+        let selectedVarianHarga = <?= isset($produk['harga_display']) ? $produk['harga_display'] : (isset($produk['harga_setelah_diskon']) && $produk['harga_setelah_diskon'] > 0 ? $produk['harga_setelah_diskon'] : ($produk['harga_awal'] ?? 0)) ?>;
+        let selectedVarianStok = <?= isset($produk['stok']) ? $produk['stok'] : 0 ?>;
+
+        function selectVariant(varianId, startIndex, harga, stok, buttonElement) {
             // Remove active class from all variant buttons
             document.querySelectorAll('.variant-option').forEach(btn => {
                 btn.classList.remove('active');
@@ -481,6 +537,15 @@ body {
             buttonElement.style.background = '#EFF6FF';
             buttonElement.style.color = '#2563EB';
             
+            // Update selected variant
+            selectedVarianId = varianId;
+            selectedVarianHarga = harga;
+            selectedVarianStok = stok;
+            
+            // Update stock info
+            document.getElementById('stockInfo').textContent = 'Stok: ' + stok + ' unit';
+            document.getElementById('quantityInput').max = stok;
+            
             // Get all thumbnails (semua gambar sudah ada di list)
             const thumbnails = document.querySelectorAll('.product-thumbnail');
             if (thumbnails.length > startIndex) {
@@ -491,6 +556,158 @@ body {
                     changeMainImage(imageSrc, targetThumbnail);
                 }
             }
+        }
+
+        function updateQuantity(change) {
+            const quantityInput = document.getElementById('quantityInput');
+            let currentValue = parseInt(quantityInput.value) || 1;
+            const maxStock = selectedVarianStok;
+            const minQuantity = 1;
+
+            let newValue = currentValue + change;
+
+            if (newValue < minQuantity) {
+                newValue = minQuantity;
+            } else if (newValue > maxStock) {
+                newValue = maxStock;
+            }
+
+            quantityInput.value = newValue;
+        }
+
+        function addToCart() {
+            const quantity = parseInt(document.getElementById('quantityInput').value) || 1;
+            const produkId = <?= isset($produk['id_produk']) ? $produk['id_produk'] : 0 ?>;
+            const varianId = selectedVarianId || null;
+            
+            if (!produkId || produkId === 0) {
+                alert('ID produk tidak valid');
+                return;
+            }
+            
+            // Disable button to prevent double click
+            const btnCart = document.querySelector('.btn-cart');
+            const originalText = btnCart.innerHTML;
+            btnCart.disabled = true;
+            btnCart.innerHTML = 'Menambahkan...';
+            
+            // Create form data
+            const formData = new URLSearchParams();
+            formData.append('id_produk', produkId);
+            formData.append('jumlah', quantity);
+            if (varianId) {
+                formData.append('id_varian', varianId);
+            }
+            
+            // Get CSRF token from cookie (CodeIgniter 4 uses cookie-based CSRF)
+            const csrfTokenName = '<?= csrf_token() ?>';
+            const csrfHash = '<?= csrf_hash() ?>';
+            formData.append(csrfTokenName, csrfHash);
+            
+            console.log('Sending POST request to:', '<?= base_url('cart/add') ?>');
+            console.log('Form data:', formData.toString());
+            
+            fetch('<?= base_url('cart/add') ?>', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                credentials: 'same-origin',
+                body: formData.toString()
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    alert('Produk ditambahkan ke keranjang!');
+                    // Optionally redirect to cart
+                    // window.location.href = '<?= base_url('cart') ?>';
+                } else {
+                    alert(data.message || 'Gagal menambahkan produk ke keranjang');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Terjadi kesalahan saat menambahkan ke keranjang. Silakan coba lagi.');
+            })
+            .finally(() => {
+                // Re-enable button
+                btnCart.disabled = false;
+                btnCart.innerHTML = originalText;
+            });
+        }
+
+        function buyNow() {
+            const quantity = parseInt(document.getElementById('quantityInput').value) || 1;
+            const produkId = <?= isset($produk['id_produk']) ? $produk['id_produk'] : 0 ?>;
+            const varianId = selectedVarianId || null;
+            
+            if (!produkId || produkId === 0) {
+                alert('ID produk tidak valid');
+                return;
+            }
+            
+            // Disable button to prevent double click
+            const btnBuy = document.querySelector('.btn-order');
+            const originalText = btnBuy.innerHTML;
+            btnBuy.disabled = true;
+            btnBuy.innerHTML = 'Memproses...';
+            
+            // Create form data
+            const formData = new URLSearchParams();
+            formData.append('id_produk', produkId);
+            formData.append('jumlah', quantity);
+            if (varianId) {
+                formData.append('id_varian', varianId);
+            }
+            
+            // First add to cart, then redirect to checkout
+            // Get CSRF token from cookie (CodeIgniter 4 uses cookie-based CSRF)
+            const csrfTokenName = '<?= csrf_token() ?>';
+            const csrfHash = '<?= csrf_hash() ?>';
+            formData.append(csrfTokenName, csrfHash);
+            
+            console.log('Sending POST request to:', '<?= base_url('cart/add') ?>');
+            console.log('Form data:', formData.toString());
+            
+            fetch('<?= base_url('cart/add') ?>', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                credentials: 'same-origin',
+                body: formData.toString()
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Redirect to checkout page
+                    window.location.href = '<?= base_url('pesan') ?>';
+                } else {
+                    alert(data.message || 'Gagal menambahkan produk. Silakan coba lagi.');
+                    btnBuy.disabled = false;
+                    btnBuy.innerHTML = originalText;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Terjadi kesalahan saat memproses pembelian. Silakan coba lagi.');
+                btnBuy.disabled = false;
+                btnBuy.innerHTML = originalText;
+            });
         }
     </script>
 </body>

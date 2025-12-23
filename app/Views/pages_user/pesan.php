@@ -1191,13 +1191,65 @@ body {
 
     <body>
         <nav class="breadcrumbs">
-            <a href="#">Beranda</a>
-            <img src="/assets/img/iconpanah.png" alt=">" />
-            <a href="#">Elektronik</a>
-            <img src="/assets/img/iconpanah.png" alt=">" />
+            <a href="<?= base_url() ?>">Beranda</a>
+            <img src="<?= base_url('assets/img/iconpanah.png') ?>" alt=">" />
+            <a href="<?= base_url('cart') ?>">Keranjang</a>
+            <img src="<?= base_url('assets/img/iconpanah.png') ?>" alt=">" />
             <span class="current">Checkout</span>
         </nav>
 
+        <!-- Error/Success Messages -->
+        <?php if (session()->getFlashdata('error')): ?>
+            <div style="position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 9999; background: #FEE2E2; color: #991B1B; padding: 16px 24px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid #FCA5A5; max-width: 500px; text-align: center;">
+                <strong>Error!</strong> <?= session()->getFlashdata('error') ?>
+            </div>
+            <script>
+                setTimeout(function() {
+                    document.querySelector('[style*="position: fixed"]').style.display = 'none';
+                }, 5000);
+            </script>
+        <?php endif; ?>
+        
+        <?php if (session()->getFlashdata('success')): ?>
+            <div style="position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 9999; background: #D1FAE5; color: #065F46; padding: 16px 24px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid #34D399; max-width: 500px; text-align: center;">
+                <strong>Berhasil!</strong> <?= session()->getFlashdata('success') ?>
+            </div>
+            <script>
+                setTimeout(function() {
+                    document.querySelector('[style*="position: fixed"]').style.display = 'none';
+                }, 5000);
+            </script>
+        <?php endif; ?>
+        
+        <!-- Error/Success Messages -->
+        <?php if (session()->getFlashdata('error')): ?>
+            <div id="error-message" style="position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 9999; background: #FEE2E2; color: #991B1B; padding: 16px 24px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid #FCA5A5; max-width: 500px; text-align: center;">
+                <strong>Error!</strong> <?= esc(session()->getFlashdata('error')) ?>
+            </div>
+            <script>
+                setTimeout(function() {
+                    const errorMsg = document.getElementById('error-message');
+                    if (errorMsg) {
+                        errorMsg.style.display = 'none';
+                    }
+                }, 5000);
+            </script>
+        <?php endif; ?>
+        
+        <?php if (session()->getFlashdata('success')): ?>
+            <div id="success-message" style="position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 9999; background: #D1FAE5; color: #065F46; padding: 16px 24px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid #34D399; max-width: 500px; text-align: center;">
+                <strong>Berhasil!</strong> <?= esc(session()->getFlashdata('success')) ?>
+            </div>
+            <script>
+                setTimeout(function() {
+                    const successMsg = document.getElementById('success-message');
+                    if (successMsg) {
+                        successMsg.style.display = 'none';
+                    }
+                }, 5000);
+            </script>
+        <?php endif; ?>
+        
         <main class="checkout-main">
             <div class="checkout-left">
                 <section class="checkout-section">
@@ -1207,7 +1259,7 @@ body {
                                 alt="Location" />
                             <span>Alamat Pengiriman</span>
                         </div>
-                        <button style="
+                        <button id="btn-ubah-alamat" style="
                 background: none;
                 border: none;
                 color: #2563eb;
@@ -1218,18 +1270,35 @@ body {
                             Ubah Alamat
                         </button>
                     </div>
-                    <div class="address-card">
-                        <div class="address-header">
-                            <span class="address-name">Ahmad Rizki</span>
-                            <span class="address-divider">|</span>
-                            <span class="address-phone">+62 812-3456-7890</span>
+                    <?php if (!empty($selectedAlamat)): ?>
+                        <div class="address-card">
+                            <div class="address-header">
+                                <span class="address-name"><?= esc($selectedAlamat['nama_penerima']) ?></span>
+                                <span class="address-divider">|</span>
+                                <span class="address-phone"><?= esc($selectedAlamat['no_hp']) ?></span>
+                            </div>
+                            <p class="address-text">
+                                <?= esc($selectedAlamat['alamat_lengkap']) ?>, 
+                                <?= esc($selectedAlamat['kecamatan']) ?>, 
+                                <?= esc($selectedAlamat['kabupaten']) ?>, 
+                                <?= esc($selectedAlamat['provinsi']) ?> 
+                                <?= !empty($selectedAlamat['kode_pos']) ? esc($selectedAlamat['kode_pos']) : '' ?>
+                            </p>
+                            <?php if (!empty($selectedAlamat['catatan'])): ?>
+                                <p style="color: #475467; font-size: 14px; margin-top: 8px;">
+                                    <strong>Catatan:</strong> <?= esc($selectedAlamat['catatan']) ?>
+                                </p>
+                            <?php endif; ?>
+                            <span class="address-badge">Alamat Utama</span>
                         </div>
-                        <p class="address-text">
-                            Jl. Sudirman No. 123, RT 05/RW 08 Kelurahan Senayan, Kecamatan
-                            Kebayoran Baru Jakarta Selatan, DKI Jakarta, 12190
-                        </p>
-                        <span class="address-badge">Alamat Utama</span>
-                    </div>
+                    <?php else: ?>
+                        <div class="address-card">
+                            <p style="color: #64748b; margin-bottom: 16px;">Belum ada alamat tersimpan</p>
+                            <button style="background: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">
+                                Tambah Alamat
+                            </button>
+                        </div>
+                    <?php endif; ?>
                 </section>
 
                 <section class="checkout-section">
@@ -1240,41 +1309,38 @@ body {
                             <span>Produk Pesanan</span>
                         </div>
                     </div>
-                    <div class="product-item">
-                        <div class="product-store">
-                            <img src="<?= base_url('assets/img/icon-store.svg') ?>"
-                                alt="Store" />
-                            <span class="product-store-name">TechStore Official</span>
-                            <span class="official-badge">Official Store</span>
-                        </div>
-                        <div class="product-details">
-                            <img src="<?= base_url('assets/img/product-headphones.png') ?>"
-                                alt="Wireless Bluetooth Headphones Premium" class="product-image" />
-                            <div class="product-info">
-                                <h3 class="product-title">
-                                    Wireless Bluetooth Headphones Premium
-                                </h3>
-                                <p class="product-variant">Variasi: Hitam, Noise Cancelling</p>
-                                <div class="product-price-row">
-                                    <div class="product-price">
-                                        <span class="product-price-current">Rp 1.299.000</span>
-                                        <span class="product-price-old">Rp 1.799.000</span>
-                                    </div>
-                                    <div class="quantity-section">
-                                        <div class="quantity-input-group">
-                                            <button type="button" class="quantity-btn">
-                                                <img src="/assets/img/minus.png" alt="Decrease" />
-                                            </button>
-                                            <input type="number" class="quantity-input" value="1" min="1" max="10" readonly />
-                                            <button type="button" class="quantity-btn">
-                                                <img src="/assets/img/plus.png" alt="Increase" />
-                                            </button>
+                    <?php foreach ($cartItems as $item): ?>
+                        <div class="product-item">
+                            <?php if (!empty($toko)): ?>
+                                <div class="product-store">
+                                    <img src="<?= base_url('assets/img/icon-store.svg') ?>" alt="Store" />
+                                    <span class="product-store-name"><?= esc($toko['nama_toko']) ?></span>
+                                    <?php if ($toko['status_toko'] === 'official_store'): ?>
+                                        <span class="official-badge">Official Store</span>
+                                    <?php endif; ?>
+                                </div>
+                            <?php endif; ?>
+                            <div class="product-details">
+                                <img src="<?= base_url($item['gambar_utama']) ?>" 
+                                     alt="<?= esc($item['nama_produk']) ?>" class="product-image" />
+                                <div class="product-info">
+                                    <h3 class="product-title"><?= esc($item['nama_produk']) ?></h3>
+                                    <div class="product-price-row">
+                                        <div class="product-price">
+                                            <span class="product-price-current">Rp <?= number_format($item['harga_display'], 0, ',', '.') ?></span>
+                                            <?php if ($item['harga_setelah_diskon'] > 0 && $item['harga_setelah_diskon'] < $item['harga_awal']): ?>
+                                                <span class="product-price-old">Rp <?= number_format($item['harga_awal'], 0, ',', '.') ?></span>
+                                            <?php endif; ?>
+                                        </div>
+                                        <div class="product-quantity">
+                                            Jumlah: <?= $item['jumlah'] ?> x Rp <?= number_format($item['harga_display'], 0, ',', '.') ?> = 
+                                            <strong>Rp <?= number_format($item['subtotal'], 0, ',', '.') ?></strong>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    <?php endforeach; ?>
                     <div class="message-box">
                         <div class="message-header">
                             <span class="message-label">Pesan untuk penjual (Opsional)</span>
@@ -1292,32 +1358,22 @@ body {
                             <span>Metode Pengiriman</span>
                         </div>
                     </div>
-                    <div class="shipping-option selected">
-                        <div class="option-content">
-                            <div class="option-radio selected"></div>
-                            <div class="option-info">
-                                <div class="option-header">
-                                    <span class="option-name">Antar Sekarang</span>
-                                    <span class="option-badge hemat">Hemat</span>
+                    <?php foreach ($shippingOptions as $index => $shipping): ?>
+                        <div class="shipping-option <?= $index === 0 ? 'selected' : '' ?>" 
+                             onclick="selectShipping('<?= esc($shipping['name']) ?>', <?= $shipping['price'] ?>, this)">
+                            <div class="option-content">
+                                <div class="option-radio <?= $index === 0 ? 'selected' : '' ?>"></div>
+                                <div class="option-info">
+                                    <div class="option-header">
+                                        <span class="option-name"><?= esc($shipping['name']) ?></span>
+                                        <span class="option-badge <?= strtolower($shipping['badge']) ?>"><?= esc($shipping['badge']) ?></span>
+                                    </div>
+                                    <p class="option-desc"><?= esc($shipping['desc']) ?></p>
                                 </div>
-                                <p class="option-desc">Estimasi tiba 15 - 20 m</p>
+                                <span class="option-price">Rp <?= number_format($shipping['price'], 0, ',', '.') ?></span>
                             </div>
-                            <span class="option-price">Rp 15.000</span>
                         </div>
-                    </div>
-                    <div class="shipping-option">
-                        <div class="option-content">
-                            <div class="option-radio"></div>
-                            <div class="option-info">
-                                <div class="option-header">
-                                    <span class="option-name">Datang ke Tempat</span>
-                                    <span class="option-badge cepat">Cepat</span>
-                                </div>
-                                <p class="option-desc">Estimasi tiba menyesuaikan</p>
-                            </div>
-                            <span class="option-price">Rp 30.000</span>
-                        </div>
-                    </div>
+                    <?php endforeach; ?>
                 </section>
 
                 <section class="checkout-section">
@@ -1328,73 +1384,33 @@ body {
                             <span>Metode Pembayaran</span>
                         </div>
                     </div>
-                    <div class="payment-option selected">
-                        <div class="option-content">
-                            <div class="option-radio selected"></div>
-                            <div style="display: flex; align-items: center; gap: 12px">
-                                <div class="payment-icon visa">
-                                    <img src="<?= base_url('assets/img/payment-visa-mastercard.svg') ?>"
-                                        alt="Visa" />
-                                </div>
-                                <div class="option-info">
-                                    <div class="option-header">
-                                        <span class="option-name">Kartu Kredit/Debit</span>
+                    <?php foreach ($paymentOptions as $index => $payment): ?>
+                        <div class="payment-option <?= $index === 0 ? 'selected' : '' ?>" 
+                             onclick="selectPayment('<?= esc($payment['name']) ?>', this)">
+                            <div class="option-content">
+                                <div class="option-radio <?= $index === 0 ? 'selected' : '' ?>"></div>
+                                <div style="display: flex; align-items: center; gap: 12px">
+                                    <div class="payment-icon <?= esc($payment['icon']) ?>">
+                                        <?php if ($payment['icon'] === 'bca'): ?>
+                                            <span style="color: white; font-size: 12px; font-weight: 700">BCA</span>
+                                        <?php elseif ($payment['icon'] === 'visa'): ?>
+                                            <img src="<?= base_url('assets/img/payment-visa-mastercard.svg') ?>" alt="Visa" />
+                                        <?php elseif ($payment['icon'] === 'ewallet'): ?>
+                                            <img src="<?= base_url('assets/img/payment-ewallet.svg') ?>" alt="E-Wallet" />
+                                        <?php elseif ($payment['icon'] === 'cod'): ?>
+                                            <img src="<?= base_url('assets/img/payment-cod.svg') ?>" alt="COD" />
+                                        <?php endif; ?>
                                     </div>
-                                    <p class="option-desc">Visa, Mastercard, JCB</p>
+                                    <div class="option-info">
+                                        <div class="option-header">
+                                            <span class="option-name"><?= esc($payment['name']) ?></span>
+                                        </div>
+                                        <p class="option-desc"><?= esc($payment['desc']) ?></p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="payment-option">
-                        <div class="option-content">
-                            <div class="option-radio"></div>
-                            <div style="display: flex; align-items: center; gap: 12px">
-                                <div class="payment-icon bca">
-                                    <span style="color: white; font-size: 12px; font-weight: 700">BCA</span>
-                                </div>
-                                <div class="option-info">
-                                    <div class="option-header">
-                                        <span class="option-name">Transfer Bank</span>
-                                    </div>
-                                    <p class="option-desc">BCA, Mandiri, BNI, BRI</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="payment-option">
-                        <div class="option-content">
-                            <div class="option-radio"></div>
-                            <div style="display: flex; align-items: center; gap: 12px">
-                                <div class="payment-icon ewallet">
-                                    <img src="<?= base_url('assets/img/payment-ewallet.svg') ?>"
-                                        alt="E-Wallet" />
-                                </div>
-                                <div class="option-info">
-                                    <div class="option-header">
-                                        <span class="option-name">E-Wallet</span>
-                                    </div>
-                                    <p class="option-desc">GoPay, OVO, DANA, ShopeePay</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="payment-option">
-                        <div class="option-content">
-                            <div class="option-radio"></div>
-                            <div style="display: flex; align-items: center; gap: 12px">
-                                <div class="payment-icon cod">
-                                    <img src="<?= base_url('assets/img/payment-cod.svg') ?>"
-                                        alt="COD" />
-                                </div>
-                                <div class="option-info">
-                                    <div class="option-header">
-                                        <span class="option-name">COD (Bayar di Tempat)</span>
-                                    </div>
-                                    <p class="option-desc">Bayar saat barang diterima</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <?php endforeach; ?>
                 </section>
             </div>
 
@@ -1402,20 +1418,20 @@ body {
                 <section class="summary-section">
                     <h2 class="summary-title">Ringkasan Belanja</h2>
                     <div class="summary-row">
-                        <span class="summary-label">Total Harga (1 barang)</span>
-                        <span class="summary-value">Rp 1.299.000</span>
+                        <span class="summary-label">Total Harga (<?= count($cartItems) ?> barang)</span>
+                        <span class="summary-value" id="summary-total-harga">Rp <?= number_format($totalHarga, 0, ',', '.') ?></span>
                     </div>
                     <div class="summary-row">
                         <span class="summary-label">Total Ongkos Kirim</span>
-                        <span class="summary-value">Rp 15.000</span>
+                        <span class="summary-value" id="summary-ongkir">Rp 15.000</span>
                     </div>
                     <div class="summary-row">
                         <span class="summary-label">Biaya Layanan</span>
                         <span class="summary-value">Rp 1.000</span>
                     </div>
-                    <div class="summary-row">
-                        <span class="summary-label">Diskon Produk</span>
-                        <span class="summary-value discount">- Rp 500.000</span>
+                    <div class="summary-row" id="summary-diskon" style="display: none;">
+                        <span class="summary-label">Diskon</span>
+                        <span class="summary-value discount" id="summary-diskon-value">- Rp 0</span>
                     </div>
                     <div class="summary-divider"></div>
 
@@ -1445,12 +1461,20 @@ body {
                     <div class="total-section">
                         <div class="total-label">Total Pembayaran</div>
                         <div class="total-amount">
-                            <div class="total-current">Rp 815.000</div>
-                            <div class="total-old">Rp 1.815.000</div>
+                            <div class="total-current" id="total-bayar">Rp <?= number_format($totalHarga + 15000 + 1000, 0, ',', '.') ?></div>
                         </div>
                     </div>
 
-                    <button class="order-button">Buat Pesanan</button>
+                    <form method="POST" action="<?= base_url('pesan/checkout') ?>" id="checkout-form" enctype="multipart/form-data">
+                        <?= csrf_field() ?>
+                        <input type="hidden" name="id_alamat" id="input-id-alamat" value="<?= isset($selectedAlamat['id_alamat']) ? $selectedAlamat['id_alamat'] : '' ?>" />
+                        <input type="hidden" name="metode_pengiriman" id="input-metode-pengiriman" value="<?= isset($shippingOptions[0]['name']) ? $shippingOptions[0]['name'] : '' ?>" />
+                        <input type="hidden" name="ongkir" id="input-ongkir" value="<?= isset($shippingOptions[0]['price']) ? $shippingOptions[0]['price'] : 0 ?>" />
+                        <input type="hidden" name="metode_pembayaran" id="input-metode-pembayaran" value="<?= isset($paymentOptions[0]['name']) ? $paymentOptions[0]['name'] : '' ?>" />
+                        <input type="hidden" name="kode_voucher" id="input-kode-voucher" value="" />
+                        <input type="hidden" name="catatan" id="input-catatan" value="" />
+                        <button type="submit" class="order-button" id="btn-buat-pesanan">Buat Pesanan</button>
+                    </form>
                     <div class="secure-text">
                         <img src="<?= base_url('assets/img/icon-shield.svg') ?>"
                             alt="Secure" />
@@ -1474,3 +1498,258 @@ body {
                 </section>
             </div>
         </main>
+        
+        <script>
+            let selectedShipping = {
+                name: '<?= isset($shippingOptions[0]['name']) ? $shippingOptions[0]['name'] : '' ?>',
+                price: <?= isset($shippingOptions[0]['price']) ? $shippingOptions[0]['price'] : 0 ?>
+            };
+            let selectedPayment = '<?= isset($paymentOptions[0]['name']) ? $paymentOptions[0]['name'] : '' ?>';
+            let totalHarga = <?= $totalHarga ?? 0 ?>;
+            let biayaLayanan = 1000;
+            
+            // Initialize form fields on page load
+            document.addEventListener('DOMContentLoaded', function() {
+                const inputIdAlamat = document.getElementById('input-id-alamat');
+                const inputMetodePengiriman = document.getElementById('input-metode-pengiriman');
+                const inputOngkir = document.getElementById('input-ongkir');
+                const inputMetodePembayaran = document.getElementById('input-metode-pembayaran');
+                
+                // Ensure default values are set
+                <?php if (!empty($selectedAlamat) && isset($selectedAlamat['id_alamat'])): ?>
+                if (inputIdAlamat && !inputIdAlamat.value) {
+                    inputIdAlamat.value = '<?= $selectedAlamat['id_alamat'] ?>';
+                }
+                <?php endif; ?>
+                
+                if (inputMetodePengiriman && !inputMetodePengiriman.value && selectedShipping.name) {
+                    inputMetodePengiriman.value = selectedShipping.name;
+                }
+                
+                if (inputOngkir && !inputOngkir.value) {
+                    inputOngkir.value = selectedShipping.price;
+                }
+                
+                if (inputMetodePembayaran && !inputMetodePembayaran.value && selectedPayment) {
+                    inputMetodePembayaran.value = selectedPayment;
+                }
+                
+                console.log('Form initialized:', {
+                    idAlamat: inputIdAlamat?.value,
+                    metodePengiriman: inputMetodePengiriman?.value,
+                    ongkir: inputOngkir?.value,
+                    metodePembayaran: inputMetodePembayaran?.value
+                });
+            });
+            
+            function selectShipping(name, price, element) {
+                selectedShipping = { name, price };
+                document.getElementById('input-metode-pengiriman').value = name;
+                document.getElementById('input-ongkir').value = price;
+                document.getElementById('summary-ongkir').textContent = 'Rp ' + price.toLocaleString('id-ID');
+                
+                // Update selected state
+                document.querySelectorAll('.shipping-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                    opt.querySelector('.option-radio').classList.remove('selected');
+                });
+                element.classList.add('selected');
+                element.querySelector('.option-radio').classList.add('selected');
+                
+                updateTotal();
+            }
+            
+            function selectPayment(name, element) {
+                selectedPayment = name;
+                document.getElementById('input-metode-pembayaran').value = name;
+                
+                // Update selected state
+                document.querySelectorAll('.payment-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                    opt.querySelector('.option-radio').classList.remove('selected');
+                });
+                element.classList.add('selected');
+                element.querySelector('.option-radio').classList.add('selected');
+            }
+            
+            let potonganVoucher = 0;
+            let voucherData = null;
+            
+            function updateTotal() {
+                const totalBayar = totalHarga + selectedShipping.price + biayaLayanan - potonganVoucher;
+                document.getElementById('total-bayar').textContent = 'Rp ' + Math.max(0, totalBayar).toLocaleString('id-ID');
+                
+                // Update diskon display
+                const diskonRow = document.getElementById('summary-diskon');
+                if (potonganVoucher > 0) {
+                    diskonRow.style.display = 'flex';
+                    document.getElementById('summary-diskon-value').textContent = '- Rp ' + potonganVoucher.toLocaleString('id-ID');
+                } else {
+                    diskonRow.style.display = 'none';
+                }
+            }
+            
+            // Promo code handler
+            const promoButton = document.querySelector('.promo-button');
+            const promoInput = document.querySelector('.promo-input');
+            
+            if (promoButton && promoInput) {
+                promoButton.addEventListener('click', function() {
+                    const kode = promoInput.value.trim();
+                    if (!kode) {
+                        alert('Masukkan kode promo terlebih dahulu');
+                        return;
+                    }
+                    
+                    // Disable button
+                    promoButton.disabled = true;
+                    promoButton.textContent = 'Memvalidasi...';
+                    
+                    // Validate promo code via AJAX
+                    const formData = new URLSearchParams();
+                    formData.append('kode_voucher', kode);
+                    formData.append('total_harga', totalHarga);
+                    
+                    // Add CSRF token
+                    const csrfTokenName = '<?= csrf_token() ?>';
+                    const csrfHash = '<?= csrf_hash() ?>';
+                    formData.append(csrfTokenName, csrfHash);
+                    
+                    fetch('<?= base_url('pesan/validate_voucher') ?>', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        },
+                        credentials: 'same-origin',
+                        body: formData.toString()
+                    })
+                    .then(response => response.json())
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(errorData => {
+                                throw new Error(errorData.message || 'Network response was not ok');
+                            });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            potonganVoucher = data.potongan || 0;
+                            voucherData = data.promo || data.voucher;
+                            document.getElementById('input-kode-voucher').value = kode;
+                            updateTotal();
+                            alert('Kode promo berhasil diterapkan! Diskon: Rp ' + potonganVoucher.toLocaleString('id-ID'));
+                            promoInput.style.borderColor = '#10b981';
+                        } else {
+                            potonganVoucher = 0;
+                            voucherData = null;
+                            document.getElementById('input-kode-voucher').value = '';
+                            updateTotal();
+                            alert(data.message || 'Kode promo tidak valid');
+                            promoInput.style.borderColor = '#ef4444';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Terjadi kesalahan saat validasi kode promo');
+                    })
+                    .finally(() => {
+                        promoButton.disabled = false;
+                        promoButton.textContent = 'Pakai';
+                    });
+                });
+            }
+            
+            // Message counter
+            const messageInput = document.querySelector('.message-input');
+            const messageCounter = document.querySelector('.message-counter');
+            if (messageInput && messageCounter) {
+                messageInput.addEventListener('input', function() {
+                    const length = this.value.length;
+                    messageCounter.textContent = length + '/100';
+                    document.getElementById('input-catatan').value = this.value;
+                });
+            }
+            
+            // Handle form submission - SIMPLIFIED: Let form submit naturally, only validate
+            const checkoutForm = document.getElementById('checkout-form');
+            if (checkoutForm) {
+                checkoutForm.addEventListener('submit', function(e) {
+                    // Get form values
+                    const idAlamat = document.getElementById('input-id-alamat')?.value || '';
+                    const metodePengiriman = document.getElementById('input-metode-pengiriman')?.value || '';
+                    const metodePembayaran = document.getElementById('input-metode-pembayaran')?.value || '';
+                    
+                    console.log('=== CHECKOUT FORM SUBMISSION ===');
+                    console.log('idAlamat:', idAlamat);
+                    console.log('metodePengiriman:', metodePengiriman);
+                    console.log('metodePembayaran:', metodePembayaran);
+                    console.log('Form method:', this.method);
+                    console.log('Form action:', this.action);
+                    
+                    // Validation - only prevent if validation fails
+                    if (!idAlamat || idAlamat.trim() === '') {
+                        e.preventDefault();
+                        alert('Pilih alamat pengiriman terlebih dahulu!');
+                        return false;
+                    }
+                    
+                    if (!metodePengiriman || metodePengiriman.trim() === '') {
+                        e.preventDefault();
+                        alert('Pilih metode pengiriman terlebih dahulu!');
+                        return false;
+                    }
+                    
+                    if (!metodePembayaran || metodePembayaran.trim() === '') {
+                        e.preventDefault();
+                        alert('Pilih metode pembayaran terlebih dahulu!');
+                        return false;
+                    }
+                    
+                    // Disable button to prevent double submit
+                    const btnBuatPesanan = document.getElementById('btn-buat-pesanan');
+                    if (btnBuatPesanan) {
+                        btnBuatPesanan.disabled = true;
+                        btnBuatPesanan.textContent = 'Memproses...';
+                    }
+                    
+                    // IMPORTANT: Don't prevent default - let form submit naturally with POST method
+                    console.log('Form validation passed, submitting as POST...');
+                    // Return true or don't return anything to allow natural submission
+                });
+            }
+            
+            // REMOVED DUPLICATE - using the one above
+            
+            // Edit address functionality
+            const btnUbahAlamat = document.getElementById('btn-ubah-alamat');
+            if (btnUbahAlamat) {
+                btnUbahAlamat.addEventListener('click', function() {
+                    <?php if (!empty($alamatList) && count($alamatList) > 1): ?>
+                    const addressOptions = <?= json_encode(array_map(function($a) {
+                        return [
+                            'id' => $a['id_alamat'],
+                            'label' => $a['nama_penerima'] . ' - ' . substr($a['alamat_lengkap'], 0, 50) . '...'
+                        ];
+                    }, $alamatList)) ?>;
+                    
+                    let optionsText = 'Pilih alamat:\n\n';
+                    addressOptions.forEach((addr, index) => {
+                        optionsText += (index + 1) + '. ' + addr.label + '\n';
+                    });
+                    
+                    const choice = prompt(optionsText + '\nMasukkan nomor (1-' + addressOptions.length + '):');
+                    if (choice && !isNaN(choice) && choice >= 1 && choice <= addressOptions.length) {
+                        const selectedAddr = addressOptions[parseInt(choice) - 1];
+                        document.getElementById('input-id-alamat').value = selectedAddr.id;
+                        alert('Alamat berhasil diubah. Halaman akan dimuat ulang.');
+                        location.reload();
+                    }
+                    <?php else: ?>
+                    alert('Hanya ada satu alamat tersimpan. Silakan tambah alamat baru di menu profil.');
+                    <?php endif; ?>
+                });
+            }
+        </script>

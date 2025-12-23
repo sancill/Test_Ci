@@ -16,8 +16,8 @@ class DetailPesananModel extends Model
         'id_pesan', 'id_produk', 'jumlah', 'harga', 'subtotal'
     ];
 
-    protected $useTimestamps = true;
-    protected $createdField  = 'created_at';
+    protected $useTimestamps = false; // Disable timestamps - let database handle created_at
+    protected $createdField  = null;
     protected $updatedField  = null;
 
     // Get order details by order ID
