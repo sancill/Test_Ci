@@ -13,7 +13,7 @@ class ProdukModel extends Model
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
-        'id_toko', 'nama_produk', 'deskripsi_produk', 'id_kategori', 'id_menu',
+        'id_toko', 'nama_produk', 'deskripsi_produk', 'gambar_produk', 'id_kategori', 'id_menu',
         'merek', 'harga_awal', 'harga_diskon', 'tipe_diskon', 'id_promo',
         'harga_setelah_diskon', 'stok', 'sku', 'berat', 'status_produk'
     ];
@@ -57,14 +57,6 @@ class ProdukModel extends Model
         return $builder->get()->getRowArray();
     }
 
-    // Get product images
-    public function getProdukFoto($id_produk)
-    {
-        $builder = $this->db->table('produk_foto');
-        $builder->where('id_produk', $id_produk);
-        $builder->orderBy('urutan', 'ASC');
-        return $builder->get()->getResultArray();
-    }
 
     // Count products by store
     public function countProdukByToko($id_toko)

@@ -201,6 +201,53 @@
             color: #991B1B;
         }
 
+        .status-cell {
+            position: relative;
+        }
+
+        .status-select {
+            padding: 4px 12px;
+            border: 1px solid #D1D5DB;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            background: #FFFFFF;
+            cursor: pointer;
+            min-width: 120px;
+        }
+
+        .status-select:focus {
+            outline: none;
+            border-color: #2563EB;
+        }
+
+        .btn-save-status,
+        .btn-cancel-edit {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: #10B981;
+            color: white;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-save-status:hover {
+            background: #059669;
+        }
+
+        .btn-cancel-edit {
+            background: #EF4444;
+        }
+
+        .btn-cancel-edit:hover {
+            background: #DC2626;
+        }
+
         .action-buttons {
             display: flex;
             gap: 8px;
@@ -392,40 +439,78 @@
                         <p class="page-subtitle">Kelola semua pesanan yang masuk</p>
                     </div>
 
+                    <!-- Stats Section -->
+                    <?php if (isset($stats) && !empty($stats)): ?>
+                    <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                        <div class="stat-card" style="background: #FEF3C7; padding: 16px; border-radius: 8px; border: 1px solid #FCD34D;">
+                            <h3 style="font-size: 14px; color: #92400E; margin-bottom: 8px;">Diproses</h3>
+                            <p style="font-size: 24px; font-weight: 700; color: #92400E;"><?= $stats['Diproses'] ?? 0 ?></p>
+                        </div>
+                        <div class="stat-card" style="background: #DBEAFE; padding: 16px; border-radius: 8px; border: 1px solid #60A5FA;">
+                            <h3 style="font-size: 14px; color: #1E40AF; margin-bottom: 8px;">Dikirim</h3>
+                            <p style="font-size: 24px; font-weight: 700; color: #1E40AF;"><?= $stats['Dikirim'] ?? 0 ?></p>
+                        </div>
+                        <div class="stat-card" style="background: #D1FAE5; padding: 16px; border-radius: 8px; border: 1px solid #34D399;">
+                            <h3 style="font-size: 14px; color: #065F46; margin-bottom: 8px;">Selesai</h3>
+                            <p style="font-size: 24px; font-weight: 700; color: #065F46;"><?= $stats['Selesai'] ?? 0 ?></p>
+                        </div>
+                        <div class="stat-card" style="background: #FEE2E2; padding: 16px; border-radius: 8px; border: 1px solid #F87171;">
+                            <h3 style="font-size: 14px; color: #991B1B; margin-bottom: 8px;">Dibatalkan</h3>
+                            <p style="font-size: 24px; font-weight: 700; color: #991B1B;"><?= $stats['Dibatalkan'] ?? 0 ?></p>
+                        </div>
+                        <div class="stat-card" style="background: #F3F4F6; padding: 16px; border-radius: 8px; border: 1px solid #9CA3AF;">
+                            <h3 style="font-size: 14px; color: #111827; margin-bottom: 8px;">Total Pesanan</h3>
+                            <p style="font-size: 24px; font-weight: 700; color: #111827;"><?= $stats['total'] ?? 0 ?></p>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+
+                    <?php if (isset($error_message)): ?>
+                        <div style="background: #FEE2E2; color: #991B1B; padding: 16px; border-radius: 8px; margin-bottom: 24px; border: 1px solid #FCA5A5;">
+                            <strong>Perhatian:</strong> <?= esc($error_message) ?>
+                            <br><small>Jalankan file SQL migration: app/Database/orders_migration_safe.sql</small>
+                        </div>
+                    <?php endif; ?>
+
                     <div class="orders-section">
                         <div class="section-header">
                             <div class="section-title-group">
                                 <h2>Riwayat Pesanan</h2>
-                                <p>Total: 892 pesanan</p>
+                                <p>Total: <?= isset($stats) ? $stats['total'] ?? 0 : 0 ?> pesanan</p>
                             </div>
                         </div>
 
-                        <div class="filters">
-                            <div class="search-filter">
-                                <input type="text" placeholder="Cari pesanan..." class="filter-input">
-                                <svg width="16" height="24" viewBox="0 0 16 24" fill="none"
-                                    xmlns="http://www.w3.org/2000/svg" class="filter-icon">
-                                    <path
-                                        d="M7 14C10.866 14 14 10.866 14 7C14 3.13401 10.866 0 7 0C3.13401 0 0 3.13401 0 7C0 10.866 3.13401 14 7 14Z"
-                                        stroke="currentColor" stroke-width="2" />
-                                    <path d="M13 13L19 19" stroke="currentColor" stroke-width="2"
-                                        stroke-linecap="round" />
-                                </svg>
+                        <form method="get" action="<?= site_url('admin/orders') ?>" id="filterForm">
+                            <div class="filters">
+                                <div class="search-filter">
+                                    <input type="text" name="search" placeholder="Cari pesanan, pelanggan, email..." 
+                                           class="filter-input" value="<?= esc($filters['search'] ?? '') ?>">
+                                    <svg width="16" height="24" viewBox="0 0 16 24" fill="none"
+                                        xmlns="http://www.w3.org/2000/svg" class="filter-icon">
+                                        <path
+                                            d="M7 14C10.866 14 14 10.866 14 7C14 3.13401 10.866 0 7 0C3.13401 0 0 3.13401 0 7C0 10.866 3.13401 14 7 14Z"
+                                            stroke="currentColor" stroke-width="2" />
+                                        <path d="M13 13L19 19" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" />
+                                    </svg>
+                                </div>
+                                <select name="status" class="filter-select" onchange="document.getElementById('filterForm').submit();">
+                                    <option value="all" <?= ($filters['status'] ?? 'all') == 'all' ? 'selected' : '' ?>>Semua Status</option>
+                                    <option value="Diproses" <?= ($filters['status'] ?? '') == 'Diproses' ? 'selected' : '' ?>>Diproses</option>
+                                    <option value="Dikirim" <?= ($filters['status'] ?? '') == 'Dikirim' ? 'selected' : '' ?>>Dikirim</option>
+                                    <option value="Selesai" <?= ($filters['status'] ?? '') == 'Selesai' ? 'selected' : '' ?>>Selesai</option>
+                                    <option value="Dibatalkan" <?= ($filters['status'] ?? '') == 'Dibatalkan' ? 'selected' : '' ?>>Dibatalkan</option>
+                                </select>
+                                <input type="date" name="tanggal_dari" class="filter-select" 
+                                       value="<?= esc($filters['tanggal_dari'] ?? '') ?>" 
+                                       placeholder="Tanggal Dari"
+                                       onchange="document.getElementById('filterForm').submit();">
+                                <input type="date" name="tanggal_sampai" class="filter-select" 
+                                       value="<?= esc($filters['tanggal_sampai'] ?? '') ?>" 
+                                       placeholder="Tanggal Sampai"
+                                       onchange="document.getElementById('filterForm').submit();">
                             </div>
-                            <select class="filter-select">
-                                <option>Semua Status</option>
-                                <option>Diproses</option>
-                                <option>Dikirim</option>
-                                <option>Selesai</option>
-                                <option>Dibatalkan</option>
-                            </select>
-                            <select class="filter-select">
-                                <option>Semua Tanggal</option>
-                                <option>Hari Ini</option>
-                                <option>Minggu Ini</option>
-                                <option>Bulan Ini</option>
-                            </select>
-                        </div>
+                        </form>
 
                         <div class="table-container">
                             <table class="data-table">
@@ -441,123 +526,90 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr>
-                                        <td><span class="order-id">#ORD-001</span></td>
-                                        <td>
-                                            <div class="customer-info">
-                                                <span class="customer-name">Ahmad Rizki</span>
-                                                <span class="customer-email">ahmad@example.com</span>
-                                            </div>
-                                        </td>
-                                        <td>Laptop Gaming ROG (x1)</td>
-                                        <td>Rp 15.000.000</td>
-                                        <td>01 Des 2025</td>
-                                        <td><span class="status-badge diproses">Diproses</span></td>
-                                        <td>
-                                            <div class="action-buttons">
-                                                <button class="btn-print">
-                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                        <path d="M6 9V2H18V9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                        <path d="M6 18H4C2.89543 18 2 17.1046 2 16V11C2 9.89543 2.89543 9 4 9H20C21.1046 9 22 9.89543 22 11V16C22 17.1046 21.1046 18 20 18H18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                        <path d="M18 14H6V22H18V14Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                    </svg>
-                                                    Invoice
-                                                </button>
-                                                <button class="action-btn">
-                                                    <img src="<?= base_url('assets/img/icon-edit.png') ?>" alt="Edit">
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td><span class="order-id">#ORD-002</span></td>
-                                        <td>
-                                            <div class="customer-info">
-                                                <span class="customer-name">Siti Nurhaliza</span>
-                                                <span class="customer-email">siti@example.com</span>
-                                            </div>
-                                        </td>
-                                        <td>Smartphone Pro Max (x2)</td>
-                                        <td>Rp 25.000.000</td>
-                                        <td>30 Nov 2025</td>
-                                        <td><span class="status-badge dikirim">Dikirim</span></td>
-                                        <td>
-                                            <div class="action-buttons">
-                                                <button class="btn-print">
-                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                        <path d="M6 9V2H18V9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                        <path d="M6 18H4C2.89543 18 2 17.1046 2 16V11C2 9.89543 2.89543 9 4 9H20C21.1046 9 22 9.89543 22 11V16C22 17.1046 21.1046 18 20 18H18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                        <path d="M18 14H6V22H18V14Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                    </svg>
-                                                    Resi
-                                                </button>
-                                                <button class="action-btn">
-                                                    <img src="<?= base_url('assets/img/icon-edit.png') ?>" alt="Edit">
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td><span class="order-id">#ORD-003</span></td>
-                                        <td>
-                                            <div class="customer-info">
-                                                <span class="customer-name">Budi Santoso</span>
-                                                <span class="customer-email">budi@example.com</span>
-                                            </div>
-                                        </td>
-                                        <td>Headphone Wireless (x1)</td>
-                                        <td>Rp 2.500.000</td>
-                                        <td>29 Nov 2025</td>
-                                        <td><span class="status-badge selesai">Selesai</span></td>
-                                        <td>
-                                            <div class="action-buttons">
-                                                <button class="btn-print">
-                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                        <path d="M6 9V2H18V9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                        <path d="M6 18H4C2.89543 18 2 17.1046 2 16V11C2 9.89543 2.89543 9 4 9H20C21.1046 9 22 9.89543 22 11V16C22 17.1046 21.1046 18 20 18H18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                        <path d="M18 14H6V22H18V14Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                    </svg>
-                                                    Invoice
-                                                </button>
-                                                <button class="action-btn">
-                                                    <img src="<?= base_url('assets/img/icon-edit.png') ?>" alt="Edit">
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td><span class="order-id">#ORD-004</span></td>
-                                        <td>
-                                            <div class="customer-info">
-                                                <span class="customer-name">Dewi Lestari</span>
-                                                <span class="customer-email">dewi@example.com</span>
-                                            </div>
-                                        </td>
-                                        <td>Smartwatch Series 8 (x1)</td>
-                                        <td>Rp 5.500.000</td>
-                                        <td>28 Nov 2025</td>
-                                        <td><span class="status-badge dibatalkan">Dibatalkan</span></td>
-                                        <td>
-                                            <div class="action-buttons">
-                                                <button class="action-btn">
-                                                    <img src="<?= base_url('assets/img/icon-edit.png') ?>" alt="Edit">
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
+                                    <?php if (!empty($orders)): ?>
+                                        <?php foreach ($orders as $order): ?>
+                                            <?php
+                                            $statusClass = strtolower($order['status_pesanan'] ?? 'diproses');
+                                            // Generate nomor pesanan jika belum ada
+                                            if (!empty($order['no_pesanan'])) {
+                                                $noPesanan = $order['no_pesanan'];
+                                            } else {
+                                                // Format: ORD-XXX
+                                                $noPesanan = 'ORD-' . str_pad($order['id_pesan'], 6, '0', STR_PAD_LEFT);
+                                            }
+                                            $produkList = '';
+                                            if (!empty($order['details']) && is_array($order['details'])) {
+                                                $produkList = implode(', ', array_map(function($d) {
+                                                    return ($d['nama_produk'] ?? '-') . ' (x' . ($d['jumlah'] ?? 1) . ')';
+                                                }, $order['details']));
+                                            } else {
+                                                $produkList = '-';
+                                            }
+                                            ?>
+                                            <tr data-order-id="<?= $order['id_pesan'] ?>">
+                                                <td><span class="order-id">#<?= esc($noPesanan) ?></span></td>
+                                                <td>
+                                                    <div class="customer-info">
+                                                        <span class="customer-name"><?= esc($order['nama_pelanggan'] ?? '-') ?></span>
+                                                        <span class="customer-email"><?= esc($order['email_pelanggan'] ?? '-') ?></span>
+                                                    </div>
+                                                </td>
+                                                <td><?= esc($produkList ?: '-') ?></td>
+                                                <td>Rp <?= number_format($order['total_bayar'] ?? $order['total_harga'] ?? 0, 0, ',', '.') ?></td>
+                                                <td><?= date('d M Y', strtotime($order['tanggal_pesan'] ?? 'now')) ?></td>
+                                                <td class="status-cell">
+                                                    <span class="status-display status-badge <?= $statusClass ?>">
+                                                        <?= esc($order['status_pesanan'] ?? 'Diproses') ?>
+                                                    </span>
+                                                    <select class="status-select" style="display: none;" data-order-id="<?= $order['id_pesan'] ?>">
+                                                        <option value="Diproses" <?= ($order['status_pesanan'] ?? '') == 'Diproses' ? 'selected' : '' ?>>Diproses</option>
+                                                        <option value="Dikirim" <?= ($order['status_pesanan'] ?? '') == 'Dikirim' ? 'selected' : '' ?>>Dikirim</option>
+                                                        <option value="Selesai" <?= ($order['status_pesanan'] ?? '') == 'Selesai' ? 'selected' : '' ?>>Selesai</option>
+                                                        <option value="Dibatalkan" <?= ($order['status_pesanan'] ?? '') == 'Dibatalkan' ? 'selected' : '' ?>>Dibatalkan</option>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <div class="action-buttons">
+                                                        <a href="<?= site_url('admin/orders/invoice/' . $order['id_pesan']) ?>" 
+                                                           class="btn-print" target="_blank">
+                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                <path d="M6 9V2H18V9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                                <path d="M6 18H4C2.89543 18 2 17.1046 2 16V11C2 9.89543 2.89543 9 4 9H20C21.1046 9 22 9.89543 22 11V16C22 17.1046 21.1046 18 20 18H18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                                <path d="M18 14H6V22H18V14Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                            </svg>
+                                                            Invoice
+                                                        </a>
+                                                        <button class="btn-edit-status action-btn" data-order-id="<?= $order['id_pesan'] ?>" title="Edit Status">
+                                                            <img src="<?= base_url('assets/img/icon-edit.png') ?>" alt="Edit">
+                                                        </button>
+                                                        <button class="btn-save-status" style="display: none;" data-order-id="<?= $order['id_pesan'] ?>" title="Simpan">
+                                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                                <polyline points="20 6 9 17 4 12"></polyline>
+                                                            </svg>
+                                                        </button>
+                                                        <button class="btn-cancel-edit" style="display: none;" data-order-id="<?= $order['id_pesan'] ?>" title="Batal">
+                                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <tr>
+                                            <td colspan="7" style="text-align: center; padding: 40px; color: #6B7280;">
+                                                Tidak ada pesanan ditemukan
+                                            </td>
+                                        </tr>
+                                    <?php endif; ?>
                                 </tbody>
                             </table>
                         </div>
 
                         <div class="table-footer">
-                            <p class="table-info">Menampilkan 1-4 dari 892 pesanan</p>
-                            <div class="pagination">
-                                <button class="page-btn">Sebelumnya</button>
-                                <button class="page-btn active">1</button>
-                                <button class="page-btn">2</button>
-                                <button class="page-btn">3</button>
-                                <button class="page-btn">Selanjutnya</button>
-                            </div>
+                            <p class="table-info">Menampilkan <?= isset($orders) ? count($orders) : 0 ?> pesanan</p>
                         </div>
                     </div>
                 </div>
@@ -565,67 +617,160 @@
         </div>
     </div>
 
+    <!-- Sidebar Toggle Script - Centralized -->
+    <script src="<?= base_url('assets/js/sidebar.js') ?>"></script>
+    
     <script>
-        // Sidebar Toggle Functionality
-        const sidebar = document.getElementById('sidebar');
-        const sidebarToggle = document.getElementById('sidebarToggle');
-        const sidebarOverlay = document.getElementById('sidebarOverlay');
-        const dashboardContainer = document.querySelector('.dashboard-container');
 
-        function isMobile() {
-            return window.innerWidth <= 768;
-        }
+        // Inline Edit Status Functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Edit Status Button
+            document.querySelectorAll('.btn-edit-status').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const orderId = this.dataset.orderId;
+                    const row = this.closest('tr');
+                    const statusDisplay = row.querySelector('.status-display');
+                    const statusSelect = row.querySelector('.status-select');
+                    const editBtn = row.querySelector('.btn-edit-status');
+                    const saveBtn = row.querySelector('.btn-save-status');
+                    const cancelBtn = row.querySelector('.btn-cancel-edit');
+                    const invoiceBtn = row.querySelector('.btn-print');
 
-        function toggleSidebar() {
-            if (isMobile()) {
-                sidebar.classList.toggle('collapsed');
-                sidebarOverlay.classList.toggle('active');
-            } else {
-                dashboardContainer.classList.toggle('sidebar-collapsed');
-                sidebar.classList.toggle('collapsed');
-                const isCollapsed = dashboardContainer.classList.contains('sidebar-collapsed');
-                localStorage.setItem('sidebarCollapsed', isCollapsed);
-            }
-        }
+                    // Show select, hide display
+                    statusDisplay.style.display = 'none';
+                    statusSelect.style.display = 'block';
+                    editBtn.style.display = 'none';
+                    invoiceBtn.style.display = 'none';
+                    saveBtn.style.display = 'flex';
+                    cancelBtn.style.display = 'flex';
+                });
+            });
 
-        sidebarToggle.addEventListener('click', toggleSidebar);
-        sidebarOverlay.addEventListener('click', () => {
-            if (isMobile()) {
-                sidebar.classList.add('collapsed');
-                sidebarOverlay.classList.remove('active');
-            }
+            // Cancel Edit
+            document.querySelectorAll('.btn-cancel-edit').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const orderId = this.dataset.orderId;
+                    const row = this.closest('tr');
+                    const statusDisplay = row.querySelector('.status-display');
+                    const statusSelect = row.querySelector('.status-select');
+                    const editBtn = row.querySelector('.btn-edit-status');
+                    const saveBtn = row.querySelector('.btn-save-status');
+                    const cancelBtn = row.querySelector('.btn-cancel-edit');
+                    const invoiceBtn = row.querySelector('.btn-print');
+
+                    // Reset select value
+                    statusSelect.value = statusDisplay.textContent.trim();
+
+                    // Show display, hide select
+                    statusDisplay.style.display = 'inline-block';
+                    statusSelect.style.display = 'none';
+                    editBtn.style.display = 'flex';
+                    invoiceBtn.style.display = 'flex';
+                    saveBtn.style.display = 'none';
+                    cancelBtn.style.display = 'none';
+                });
+            });
+
+            // Save Status
+            document.querySelectorAll('.btn-save-status').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const orderId = this.dataset.orderId;
+                    const row = this.closest('tr');
+                    const statusSelect = row.querySelector('.status-select');
+                    const statusDisplay = row.querySelector('.status-display');
+                    const newStatus = statusSelect.value;
+
+                    // Disable button while processing
+                    this.disabled = true;
+                    this.innerHTML = '<span style="font-size: 12px;">Menyimpan...</span>';
+
+                    // AJAX request
+                    fetch('<?= site_url('admin/orders/update_status') ?>/' + orderId, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: 'status_pesanan=' + encodeURIComponent(newStatus)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Update status display
+                            statusDisplay.textContent = newStatus;
+                            statusDisplay.className = 'status-display status-badge ' + newStatus.toLowerCase();
+
+                            // Show success message (optional)
+                            showNotification('Status berhasil diupdate', 'success');
+
+                            // Exit edit mode
+                            const editBtn = row.querySelector('.btn-edit-status');
+                            const saveBtn = row.querySelector('.btn-save-status');
+                            const cancelBtn = row.querySelector('.btn-cancel-edit');
+                            const invoiceBtn = row.querySelector('.btn-print');
+
+                            statusDisplay.style.display = 'inline-block';
+                            statusSelect.style.display = 'none';
+                            editBtn.style.display = 'flex';
+                            invoiceBtn.style.display = 'flex';
+                            saveBtn.style.display = 'none';
+                            cancelBtn.style.display = 'none';
+
+                            // Reload page after 1 second to update stats
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1000);
+                        } else {
+                            showNotification(data.message || 'Gagal mengupdate status', 'error');
+                            this.disabled = false;
+                            this.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showNotification('Terjadi kesalahan saat mengupdate status', 'error');
+                        this.disabled = false;
+                        this.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+                    });
+                });
+            });
         });
 
-        function loadSidebarState() {
-            if (!isMobile()) {
-                const savedState = localStorage.getItem('sidebarCollapsed');
-                if (savedState === 'true') {
-                    dashboardContainer.classList.add('sidebar-collapsed');
-                    sidebar.classList.add('collapsed');
-                } else {
-                    sidebar.classList.remove('collapsed');
-                    dashboardContainer.classList.remove('sidebar-collapsed');
-                }
-            } else {
-                sidebar.classList.add('collapsed');
-                sidebarOverlay.classList.remove('active');
-            }
+        // Notification function
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 16px 20px;
+                background: ${type === 'success' ? '#10B981' : '#EF4444'};
+                color: white;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                z-index: 10000;
+                font-size: 14px;
+                font-weight: 500;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transition = 'opacity 0.3s';
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }, 3000);
         }
 
-        window.addEventListener('resize', () => {
-            if (isMobile()) {
-                sidebarOverlay.classList.remove('active');
-                if (!sidebar.classList.contains('collapsed')) {
-                    sidebar.classList.add('collapsed');
-                }
-                dashboardContainer.classList.remove('sidebar-collapsed');
-            } else {
-                sidebarOverlay.classList.remove('active');
-                loadSidebarState();
-            }
-        });
-
-        loadSidebarState();
+        // Alert messages
+        <?php if (session()->getFlashdata('success')): ?>
+            showNotification('<?= session()->getFlashdata('success') ?>', 'success');
+        <?php endif; ?>
+        <?php if (session()->getFlashdata('error')): ?>
+            showNotification('<?= session()->getFlashdata('error') ?>', 'error');
+        <?php endif; ?>
     </script>
 </body>
 

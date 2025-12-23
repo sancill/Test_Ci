@@ -491,10 +491,10 @@
                                             <?php endif; ?>
                                         </div>
                                         <div class="category-actions">
-                                            <button class="action-btn" onclick="editKategori(<?= $kat['id_kategori'] ?>, '<?= esc($kat['nama_kategori'], 'js') ?>', '<?= esc($kat['deskripsi_kategori'] ?? '', 'js') ?>', '<?= esc($kat['status'], 'js') ?>', '<?= !empty($kat['icon_kategori']) ? esc($kat['icon_kategori'], 'js') : '' ?>')">
+                                            <button class="action-btn" onclick="window.location.href='<?= base_url('admin/kategori?edit=' . $kat['id_kategori']) ?>'" title="Edit Kategori">
                                                 <img src="<?= base_url('assets/img/icon-edit.png') ?>" alt="Edit">
                                             </button>
-                                            <button class="action-btn" onclick="hapusKategori(<?= $kat['id_kategori'] ?>)">
+                                            <button class="action-btn" onclick="hapusKategori(<?= $kat['id_kategori'] ?>)" title="Hapus Kategori">
                                                 <img src="<?= base_url('assets/img/icon-tongsampah.png') ?>" alt="Hapus">
                                             </button>
                                         </div>
@@ -503,6 +503,14 @@
                                         <span class="status-badge <?= $kat['status'] === 'aktif' ? 'active' : 'inactive' ?>">
                                             <?= $kat['status'] === 'aktif' ? 'Aktif' : 'Tidak Aktif' ?>
                                         </span>
+                                        <div style="margin-top: 12px;">
+                                            <a href="<?= base_url('admin/produk?kategori=' . $kat['id_kategori']) ?>" class="btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 13px; border-radius: 8px;">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 14px; height: 14px;">
+                                                    <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                </svg>
+                                                <span>Tambah Produk</span>
+                                            </a>
+                                        </div>
                                     </div>
                                 <?php endforeach; ?>
                             <?php else: ?>
@@ -516,24 +524,33 @@
                     <!-- Add Category Form Section -->
                     <div class="add-category-section" id="addCategoryForm">
                         <div class="form-header">
-                            <h2 class="form-title">Tambah Kategori Baru</h2>
-                            <p class="form-subtitle">Lengkapi informasi kategori yang akan ditambahkan</p>
+                            <h2 class="form-title"><?= isset($editId) && $editId ? 'Edit Kategori' : 'Tambah Kategori Baru' ?></h2>
+                            <p class="form-subtitle"><?= isset($editId) && $editId ? 'Ubah informasi kategori yang ada' : 'Lengkapi informasi kategori yang akan ditambahkan' ?></p>
                         </div>
 
-                        <form id="categoryForm" action="<?= base_url('admin/simpan_kategori') ?>" method="post" enctype="multipart/form-data">
+                        <form id="categoryForm" action="<?= isset($editId) && $editId ? base_url('admin/update_kategori/' . $editId) : base_url('admin/simpan_kategori') ?>" method="post" enctype="multipart/form-data">
                             <?= csrf_field() ?>
-                            <input type="hidden" name="id_kategori" id="id_kategori" value="">
+                            <input type="hidden" name="id_kategori" id="id_kategori" value="<?= isset($editId) && $editId ? $editId : '' ?>">
                             <div class="form-grid">
                                 <!-- Category Icon Upload -->
                                 <div class="form-group">
                                     <label class="form-label">Icon Kategori</label>
                                     <div class="upload-area" id="categoryIconUpload">
-                                        <img id="iconPreview" class="preview-image" src="" alt="Icon Preview" style="display: none;">
-                                        <svg class="upload-icon" id="uploadIconSvg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M7 18C4.23858 18 2 15.7614 2 13C2 10.2386 4.23858 8 7 8C7.35138 8 7.68838 8.03357 8.01116 8.09569C8.54744 6.13037 10.3453 4.75 12.5 4.75C15.1234 4.75 17.25 6.87665 17.25 9.5C17.25 9.77614 17.2239 10.0458 17.1746 10.3069C18.4659 10.9846 19.25 12.3515 19.25 13.875C19.25 16.1868 17.4368 18 15.125 18H7Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                            <path d="M12 8V16M8 12H16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                        </svg>
-                                        <p class="upload-text" id="uploadText">Klik untuk upload</p>
+                                        <?php if (isset($kategoriEdit) && $kategoriEdit && !empty($kategoriEdit['icon_kategori'])): ?>
+                                            <img id="iconPreview" class="preview-image" src="<?= base_url($kategoriEdit['icon_kategori']) ?>" alt="Icon Preview">
+                                            <svg class="upload-icon" id="uploadIconSvg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: none;">
+                                                <path d="M7 18C4.23858 18 2 15.7614 2 13C2 10.2386 4.23858 8 7 8C7.35138 8 7.68838 8.03357 8.01116 8.09569C8.54744 6.13037 10.3453 4.75 12.5 4.75C15.1234 4.75 17.25 6.87665 17.25 9.5C17.25 9.77614 17.2239 10.0458 17.1746 10.3069C18.4659 10.9846 19.25 12.3515 19.25 13.875C19.25 16.1868 17.4368 18 15.125 18H7Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M12 8V16M8 12H16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                            </svg>
+                                            <p class="upload-text" id="uploadText">Klik untuk mengganti icon</p>
+                                        <?php else: ?>
+                                            <img id="iconPreview" class="preview-image" src="" alt="Icon Preview" style="display: none;">
+                                            <svg class="upload-icon" id="uploadIconSvg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M7 18C4.23858 18 2 15.7614 2 13C2 10.2386 4.23858 8 7 8C7.35138 8 7.68838 8.03357 8.01116 8.09569C8.54744 6.13037 10.3453 4.75 12.5 4.75C15.1234 4.75 17.25 6.87665 17.25 9.5C17.25 9.77614 17.2239 10.0458 17.1746 10.3069C18.4659 10.9846 19.25 12.3515 19.25 13.875C19.25 16.1868 17.4368 18 15.125 18H7Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M12 8V16M8 12H16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                            </svg>
+                                            <p class="upload-text" id="uploadText">Klik untuk upload</p>
+                                        <?php endif; ?>
                                         <p class="upload-hint">PNG, JPG, GIF hingga 5MB</p>
                                         <input type="file" id="categoryIcon" name="icon_kategori" accept="image/*" style="display: none;">
                                     </div>
@@ -542,13 +559,13 @@
                                 <!-- Category Name -->
                                 <div class="form-group">
                                     <label class="form-label required">Nama Kategori</label>
-                                    <input type="text" name="nama_kategori" id="nama_kategori" class="form-input" placeholder="Masukkan nama kategori" required>
+                                    <input type="text" name="nama_kategori" id="nama_kategori" class="form-input" placeholder="Masukkan nama kategori" value="<?= isset($kategoriEdit) && $kategoriEdit ? esc($kategoriEdit['nama_kategori']) : '' ?>" required>
                                 </div>
 
                                 <!-- Category Description -->
                                 <div class="form-group full-width">
                                     <label class="form-label">Deskripsi Kategori</label>
-                                    <textarea name="deskripsi_kategori" id="deskripsi_kategori" class="form-textarea" placeholder="Jelaskan kategori produk..."></textarea>
+                                    <textarea name="deskripsi_kategori" id="deskripsi_kategori" class="form-textarea" placeholder="Jelaskan kategori produk..."><?= isset($kategoriEdit) && $kategoriEdit ? esc($kategoriEdit['deskripsi_kategori'] ?? '') : '' ?></textarea>
                                 </div>
 
                                 <!-- Status -->
@@ -556,11 +573,11 @@
                                     <label class="form-label">Status Kategori</label>
                                     <div class="radio-group">
                                         <div class="radio-option">
-                                            <input type="radio" id="cat-status-aktif" name="status" value="aktif" checked>
+                                            <input type="radio" id="cat-status-aktif" name="status" value="aktif" <?= (isset($kategoriEdit) && $kategoriEdit && ($kategoriEdit['status'] ?? 'aktif') === 'aktif') || !isset($kategoriEdit) ? 'checked' : '' ?>>
                                             <label for="cat-status-aktif">Aktif</label>
                                         </div>
                                         <div class="radio-option">
-                                            <input type="radio" id="cat-status-tidak-aktif" name="status" value="tidak_aktif">
+                                            <input type="radio" id="cat-status-tidak-aktif" name="status" value="tidak_aktif" <?= (isset($kategoriEdit) && $kategoriEdit && ($kategoriEdit['status'] ?? '') === 'tidak_aktif') ? 'checked' : '' ?>>
                                             <label for="cat-status-tidak-aktif">Tidak Aktif</label>
                                         </div>
                                     </div>
@@ -571,9 +588,13 @@
                             <div class="form-actions">
                                 <button type="submit" class="btn-submit" id="submitBtn">
                                     <img src="<?= base_url('assets/img/pluswhite.png') ?>" alt="Plus">
-                                    <span id="submitText">Tambah Kategori</span>
+                                    <span id="submitText"><?= isset($editId) && $editId ? 'Update Kategori' : 'Tambah Kategori' ?></span>
                                 </button>
-                                <button type="button" class="btn-cancel" onclick="resetForm()">Batal</button>
+                                <?php if (isset($editId) && $editId): ?>
+                                    <a href="<?= base_url('admin/kategori') ?>" class="btn-cancel" style="text-decoration: none; display: inline-flex; align-items: center;">Batal Edit</a>
+                                <?php else: ?>
+                                    <button type="button" class="btn-cancel" onclick="resetForm()">Batal</button>
+                                <?php endif; ?>
                             </div>
                         </form>
                     </div>
@@ -582,67 +603,10 @@
         </div>
     </div>
 
+    <!-- Sidebar Toggle Script - Centralized -->
+    <script src="<?= base_url('assets/js/sidebar.js') ?>"></script>
+    
     <script>
-        // Sidebar Toggle Functionality
-        const sidebar = document.getElementById('sidebar');
-        const sidebarToggle = document.getElementById('sidebarToggle');
-        const sidebarOverlay = document.getElementById('sidebarOverlay');
-        const dashboardContainer = document.querySelector('.dashboard-container');
-
-        function isMobile() {
-            return window.innerWidth <= 768;
-        }
-
-        function toggleSidebar() {
-            if (isMobile()) {
-                sidebar.classList.toggle('collapsed');
-                sidebarOverlay.classList.toggle('active');
-            } else {
-                dashboardContainer.classList.toggle('sidebar-collapsed');
-                sidebar.classList.toggle('collapsed');
-                const isCollapsed = dashboardContainer.classList.contains('sidebar-collapsed');
-                localStorage.setItem('sidebarCollapsed', isCollapsed);
-            }
-        }
-
-        sidebarToggle.addEventListener('click', toggleSidebar);
-        sidebarOverlay.addEventListener('click', () => {
-            if (isMobile()) {
-                sidebar.classList.add('collapsed');
-                sidebarOverlay.classList.remove('active');
-            }
-        });
-
-        function loadSidebarState() {
-            if (!isMobile()) {
-                const savedState = localStorage.getItem('sidebarCollapsed');
-                if (savedState === 'true') {
-                    dashboardContainer.classList.add('sidebar-collapsed');
-                    sidebar.classList.add('collapsed');
-                } else {
-                    sidebar.classList.remove('collapsed');
-                    dashboardContainer.classList.remove('sidebar-collapsed');
-                }
-            } else {
-                sidebar.classList.add('collapsed');
-                sidebarOverlay.classList.remove('active');
-            }
-        }
-
-        window.addEventListener('resize', () => {
-            if (isMobile()) {
-                sidebarOverlay.classList.remove('active');
-                if (!sidebar.classList.contains('collapsed')) {
-                    sidebar.classList.add('collapsed');
-                }
-                dashboardContainer.classList.remove('sidebar-collapsed');
-            } else {
-                sidebarOverlay.classList.remove('active');
-                loadSidebarState();
-            }
-        });
-
-        loadSidebarState();
 
         // File Upload
         const categoryIconUpload = document.getElementById('categoryIconUpload');

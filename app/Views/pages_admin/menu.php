@@ -536,67 +536,10 @@
         </div>
     </div>
 
+    <!-- Sidebar Toggle Script - Centralized -->
+    <script src="<?= base_url('assets/js/sidebar.js') ?>"></script>
+    
     <script>
-        // Sidebar Toggle Functionality
-        const sidebar = document.getElementById('sidebar');
-        const sidebarToggle = document.getElementById('sidebarToggle');
-        const sidebarOverlay = document.getElementById('sidebarOverlay');
-        const dashboardContainer = document.querySelector('.dashboard-container');
-
-        function isMobile() {
-            return window.innerWidth <= 768;
-        }
-
-        function toggleSidebar() {
-            if (isMobile()) {
-                sidebar.classList.toggle('collapsed');
-                sidebarOverlay.classList.toggle('active');
-            } else {
-                dashboardContainer.classList.toggle('sidebar-collapsed');
-                sidebar.classList.toggle('collapsed');
-                const isCollapsed = dashboardContainer.classList.contains('sidebar-collapsed');
-                localStorage.setItem('sidebarCollapsed', isCollapsed);
-            }
-        }
-
-        sidebarToggle.addEventListener('click', toggleSidebar);
-        sidebarOverlay.addEventListener('click', () => {
-            if (isMobile()) {
-                sidebar.classList.add('collapsed');
-                sidebarOverlay.classList.remove('active');
-            }
-        });
-
-        function loadSidebarState() {
-            if (!isMobile()) {
-                const savedState = localStorage.getItem('sidebarCollapsed');
-                if (savedState === 'true') {
-                    dashboardContainer.classList.add('sidebar-collapsed');
-                    sidebar.classList.add('collapsed');
-                } else {
-                    sidebar.classList.remove('collapsed');
-                    dashboardContainer.classList.remove('sidebar-collapsed');
-                }
-            } else {
-                sidebar.classList.add('collapsed');
-                sidebarOverlay.classList.remove('active');
-            }
-        }
-
-        window.addEventListener('resize', () => {
-            if (isMobile()) {
-                sidebarOverlay.classList.remove('active');
-                if (!sidebar.classList.contains('collapsed')) {
-                    sidebar.classList.add('collapsed');
-                }
-                dashboardContainer.classList.remove('sidebar-collapsed');
-            } else {
-                sidebarOverlay.classList.remove('active');
-                loadSidebarState();
-            }
-        });
-
-        loadSidebarState();
 
         // Edit Menu
         function editMenu(id, nama, idKategori, deskripsi, status) {

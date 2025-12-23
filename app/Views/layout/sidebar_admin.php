@@ -1,7 +1,7 @@
 <?php
 // Sidebar Admin Partial
 // Usage: view('layout/sidebar_admin', ['activeMenu' => 'dashboard'])
-// activeMenu options: dashboard, produk, kategori, menu, orders, promo, customers, setting_toko
+// activeMenu options: dashboard, produk, kategori, menu, orders, promo, setting_toko
 
 $activeMenu = $activeMenu ?? '';
 
@@ -44,10 +44,6 @@ $toko = $tokoModel->getToko();
         <a href="<?= base_url('admin/promo') ?>" class="nav-item <?= $activeMenu === 'promo' ? 'active' : '' ?>">
             <img src="<?= base_url('assets/img/promotion.png') ?>" alt="Promo">
             <span>Promo</span>
-        </a>
-        <a href="<?= base_url('admin/customers') ?>" class="nav-item <?= $activeMenu === 'customers' ? 'active' : '' ?>">
-            <img src="<?= base_url('assets/img/customers.png') ?>" alt="Customers">
-            <span>Customers</span>
         </a>
         <a href="<?= base_url('admin/setting_toko') ?>" class="nav-item <?= $activeMenu === 'setting_toko' ? 'active' : '' ?>">
             <img src="<?= base_url('assets/img/setting.png') ?>" alt="Settings">

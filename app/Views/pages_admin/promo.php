@@ -445,12 +445,25 @@
                         <p class="page-subtitle">Kelola flash sale, diskon bundling, dan voucher toko</p>
                     </div>
 
+                    <!-- Alert Messages -->
+                    <?php if (session()->getFlashdata('success')): ?>
+                        <div class="alert alert-success" style="background: #D1FAE5; color: #065F46; padding: 16px; border-radius: 8px; margin-bottom: 24px; border: 1px solid #34D399;">
+                            <strong>Berhasil!</strong> <?= session()->getFlashdata('success') ?>
+                        </div>
+                    <?php endif; ?>
+                    
+                    <?php if (session()->getFlashdata('error')): ?>
+                        <div class="alert alert-error" style="background: #FEE2E2; color: #991B1B; padding: 16px; border-radius: 8px; margin-bottom: 24px; border: 1px solid #FCA5A5;">
+                            <strong>Error!</strong> <?= session()->getFlashdata('error') ?>
+                        </div>
+                    <?php endif; ?>
+
                     <!-- Promo List Section -->
                     <div class="promo-section">
                         <div class="section-header">
                             <div class="section-title-group">
                                 <h2>Daftar Promo Aktif</h2>
-                                <p>Total: 5 promo aktif</p>
+                                <p>Total: <?= isset($promoAktif) ? count($promoAktif) : 0 ?> promo aktif</p>
                             </div>
                             <button class="btn-primary" onclick="document.getElementById('addPromoForm').scrollIntoView({behavior: 'smooth'})">
                                 <img src="<?= base_url('assets/img/pluswhite.png') ?>" alt="Tambah Promo">
@@ -459,178 +472,146 @@
                         </div>
 
                         <div class="promo-grid">
-                            <div class="promo-card">
-                                <div class="promo-actions">
-                                    <button class="action-btn">
-                                        <img src="<?= base_url('assets/img/icon-edit.png') ?>" alt="Edit">
-                                    </button>
-                                    <button class="action-btn">
-                                        <img src="<?= base_url('assets/img/icon-tongsampah.png') ?>" alt="Hapus">
-                                    </button>
+                            <?php if (!empty($promos)): ?>
+                                <?php foreach ($promos as $promo): ?>
+                                    <?php
+                                    $tipePromoClass = '';
+                                    $tipePromoLabel = '';
+                                    if ($promo['tipe_promo'] === 'flash_sale') {
+                                        $tipePromoClass = 'flash-sale';
+                                        $tipePromoLabel = 'Flash Sale';
+                                    } elseif ($promo['tipe_promo'] === 'diskon_bundling') {
+                                        $tipePromoClass = 'diskon';
+                                        $tipePromoLabel = 'Diskon Bundling';
+                                    } else {
+                                        $tipePromoClass = 'voucher';
+                                        $tipePromoLabel = 'Voucher Toko';
+                                    }
+                                    
+                                    $diskonText = '';
+                                    if ($promo['tipe_diskon'] === 'persentase') {
+                                        $diskonText = 'Diskon ' . number_format($promo['nilai_diskon'], 0) . '%';
+                                    } else {
+                                        $diskonText = 'Diskon Rp ' . number_format($promo['nilai_diskon'], 0, ',', '.');
+                                    }
+                                    
+                                    $tanggalMulai = date('d M', strtotime($promo['tanggal_mulai']));
+                                    $tanggalBerakhir = date('d M Y', strtotime($promo['tanggal_berakhir']));
+                                    $jumlahProduk = $promo['jumlah_produk'] ?? 0;
+                                    $totalPenjualan = $promo['total_penjualan'] ?? 0;
+                                    $totalPesanan = $promo['total_pesanan'] ?? 0;
+                                    ?>
+                                    <div class="promo-card">
+                                        <div class="promo-actions">
+                                            <a href="<?= site_url('admin/promo?edit=' . $promo['id_promo']) ?>" class="action-btn" title="Edit">
+                                                <img src="<?= base_url('assets/img/icon-edit.png') ?>" alt="Edit">
+                                            </a>
+                                            <a href="<?= site_url('admin/hapus_promo/' . $promo['id_promo']) ?>" 
+                                               class="action-btn" 
+                                               title="Hapus"
+                                               onclick="return confirm('Apakah Anda yakin ingin menghapus promo ini?')">
+                                                <img src="<?= base_url('assets/img/icon-tongsampah.png') ?>" alt="Hapus">
+                                            </a>
+                                        </div>
+                                        <div class="promo-header">
+                                            <span class="promo-type <?= $tipePromoClass ?>"><?= esc($tipePromoLabel) ?></span>
+                                            <?php if ($promo['status'] === 'tidak_aktif'): ?>
+                                                <span style="background: #F3F4F6; color: #6B7280; padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 600;">Tidak Aktif</span>
+                                            <?php endif; ?>
+                                        </div>
+                                        <h3 class="promo-title"><?= esc($promo['nama_promo']) ?></h3>
+                                        <div class="promo-details">
+                                            <div class="promo-detail-item">
+                                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M8 2V6M16 2V6M3 10H21M5 4H19C20.1046 4 21 4.89543 21 6V20C21 21.1046 20.1046 22 19 22H5C3.89543 22 3 21.1046 3 20V6C3 4.89543 3.89543 4 5 4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                </svg>
+                                                <span><?= $tanggalMulai ?> - <?= $tanggalBerakhir ?></span>
+                                            </div>
+                                            <div class="promo-detail-item">
+                                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                </svg>
+                                                <span><?= $jumlahProduk ?> produk</span>
+                                            </div>
+                                            <div class="promo-detail-item">
+                                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                </svg>
+                                                <span><?= esc($diskonText) ?></span>
+                                            </div>
+                                        </div>
+                                        <div class="promo-stats">
+                                            <div class="stat-item">
+                                                <div class="stat-label">Total Penjualan</div>
+                                                <div class="stat-value">Rp <?= number_format($totalPenjualan / 1000000, 1) ?>M</div>
+                                            </div>
+                                            <div class="stat-item">
+                                                <div class="stat-label">Pesanan</div>
+                                                <div class="stat-value"><?= number_format($totalPesanan, 0, ',', '.') ?></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #6B7280;">
+                                    <p>Tidak ada promo aktif</p>
                                 </div>
-                                <div class="promo-header">
-                                    <span class="promo-type flash-sale">Flash Sale</span>
-                                </div>
-                                <h3 class="promo-title">Flash Sale Elektronik</h3>
-                                <div class="promo-details">
-                                    <div class="promo-detail-item">
-                                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M8 2V6M16 2V6M3 10H21M5 4H19C20.1046 4 21 4.89543 21 6V20C21 21.1046 20.1046 22 19 22H5C3.89543 22 3 21.1046 3 20V6C3 4.89543 3.89543 4 5 4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                        </svg>
-                                        <span>01 Des - 07 Des 2025</span>
-                                    </div>
-                                    <div class="promo-detail-item">
-                                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                            <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                            <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                        </svg>
-                                        <span>15 produk</span>
-                                    </div>
-                                    <div class="promo-detail-item">
-                                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                        </svg>
-                                        <span>Diskon hingga 50%</span>
-                                    </div>
-                                </div>
-                                <div class="promo-stats">
-                                    <div class="stat-item">
-                                        <div class="stat-label">Total Penjualan</div>
-                                        <div class="stat-value">Rp 125M</div>
-                                    </div>
-                                    <div class="stat-item">
-                                        <div class="stat-label">Pesanan</div>
-                                        <div class="stat-value">1,245</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="promo-card">
-                                <div class="promo-actions">
-                                    <button class="action-btn">
-                                        <img src="<?= base_url('assets/img/icon-edit.png') ?>" alt="Edit">
-                                    </button>
-                                    <button class="action-btn">
-                                        <img src="<?= base_url('assets/img/icon-tongsampah.png') ?>" alt="Hapus">
-                                    </button>
-                                </div>
-                                <div class="promo-header">
-                                    <span class="promo-type diskon">Diskon Bundling</span>
-                                </div>
-                                <h3 class="promo-title">Beli 2 Gratis 1</h3>
-                                <div class="promo-details">
-                                    <div class="promo-detail-item">
-                                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M8 2V6M16 2V6M3 10H21M5 4H19C20.1046 4 21 4.89543 21 6V20C21 21.1046 20.1046 22 19 22H5C3.89543 22 3 21.1046 3 20V6C3 4.89543 3.89543 4 5 4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                        </svg>
-                                        <span>15 Nov - 30 Nov 2025</span>
-                                    </div>
-                                    <div class="promo-detail-item">
-                                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                        </svg>
-                                        <span>8 produk</span>
-                                    </div>
-                                </div>
-                                <div class="promo-stats">
-                                    <div class="stat-item">
-                                        <div class="stat-label">Total Penjualan</div>
-                                        <div class="stat-value">Rp 45M</div>
-                                    </div>
-                                    <div class="stat-item">
-                                        <div class="stat-label">Pesanan</div>
-                                        <div class="stat-value">523</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="promo-card">
-                                <div class="promo-actions">
-                                    <button class="action-btn">
-                                        <img src="<?= base_url('assets/img/icon-edit.png') ?>" alt="Edit">
-                                    </button>
-                                    <button class="action-btn">
-                                        <img src="<?= base_url('assets/img/icon-tongsampah.png') ?>" alt="Hapus">
-                                    </button>
-                                </div>
-                                <div class="promo-header">
-                                    <span class="promo-type voucher">Voucher Toko</span>
-                                </div>
-                                <h3 class="promo-title">Voucher Lebaran 2025</h3>
-                                <div class="promo-details">
-                                    <div class="promo-detail-item">
-                                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M8 2V6M16 2V6M3 10H21M5 4H19C20.1046 4 21 4.89543 21 6V20C21 21.1046 20.1046 22 19 22H5C3.89543 22 3 21.1046 3 20V6C3 4.89543 3.89543 4 5 4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                        </svg>
-                                        <span>01 Apr - 30 Apr 2025</span>
-                                    </div>
-                                    <div class="promo-detail-item">
-                                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                        </svg>
-                                        <span>Diskon Rp 50.000</span>
-                                    </div>
-                                </div>
-                                <div class="promo-stats">
-                                    <div class="stat-item">
-                                        <div class="stat-label">Voucher Terpakai</div>
-                                        <div class="stat-value">2,456</div>
-                                    </div>
-                                    <div class="stat-item">
-                                        <div class="stat-label">Total Diskon</div>
-                                        <div class="stat-value">Rp 123M</div>
-                                    </div>
-                                </div>
-                            </div>
+                            <?php endif; ?>
                         </div>
                     </div>
 
-                    <!-- Add Promo Form Section -->
+                    <!-- Add/Edit Promo Form Section -->
                     <div class="add-promo-section" id="addPromoForm">
                         <div class="form-header">
-                            <h2 class="form-title">Tambah Promo Baru</h2>
-                            <p class="form-subtitle">Buat flash sale, diskon bundling, atau voucher toko</p>
+                            <h2 class="form-title"><?= isset($editId) && $editId ? 'Edit Promo' : 'Tambah Promo Baru' ?></h2>
+                            <p class="form-subtitle"><?= isset($editId) && $editId ? 'Ubah informasi promo yang ada' : 'Buat flash sale, diskon bundling, atau voucher toko' ?></p>
                         </div>
 
-                        <form id="promoForm">
+                        <form id="promoForm" action="<?= isset($editId) && $editId ? base_url('admin/update_promo/' . $editId) : base_url('admin/simpan_promo') ?>" method="post">
+                            <?= csrf_field() ?>
                             <div class="form-grid">
                                 <!-- Promo Type -->
                                 <div class="form-group">
                                     <label class="form-label required">Tipe Promo</label>
-                                    <select class="form-select" id="promoType" required>
+                                    <select name="tipe_promo" id="tipePromo" class="form-select" required>
                                         <option value="">Pilih tipe promo</option>
-                                        <option value="flash-sale">Flash Sale</option>
-                                        <option value="diskon-bundling">Diskon Bundling</option>
-                                        <option value="voucher">Voucher Toko</option>
+                                        <option value="flash_sale" <?= (isset($promoEdit) && $promoEdit['tipe_promo'] === 'flash_sale') ? 'selected' : '' ?>>Flash Sale</option>
+                                        <option value="diskon_bundling" <?= (isset($promoEdit) && $promoEdit['tipe_promo'] === 'diskon_bundling') ? 'selected' : '' ?>>Diskon Bundling</option>
+                                        <option value="voucher" <?= (isset($promoEdit) && $promoEdit['tipe_promo'] === 'voucher') ? 'selected' : '' ?>>Voucher Toko</option>
                                     </select>
                                 </div>
 
-                                <!-- Promo Title -->
+                                <!-- Promo Name -->
                                 <div class="form-group">
                                     <label class="form-label required">Nama Promo</label>
-                                    <input type="text" class="form-input" placeholder="Masukkan nama promo" required>
+                                    <input type="text" name="nama_promo" class="form-input" 
+                                           placeholder="Masukkan nama promo" 
+                                           value="<?= isset($promoEdit) ? esc($promoEdit['nama_promo']) : '' ?>" required>
                                 </div>
 
                                 <!-- Start Date -->
                                 <div class="form-group">
                                     <label class="form-label required">Tanggal Mulai</label>
-                                    <input type="datetime-local" class="form-input" required>
+                                    <input type="datetime-local" name="tanggal_mulai" class="form-input" 
+                                           value="<?= isset($promoEdit) ? date('Y-m-d\TH:i', strtotime($promoEdit['tanggal_mulai'])) : '' ?>" required>
                                 </div>
 
                                 <!-- End Date -->
                                 <div class="form-group">
                                     <label class="form-label required">Tanggal Berakhir</label>
-                                    <input type="datetime-local" class="form-input" required>
+                                    <input type="datetime-local" name="tanggal_berakhir" class="form-input" 
+                                           value="<?= isset($promoEdit) ? date('Y-m-d\TH:i', strtotime($promoEdit['tanggal_berakhir'])) : '' ?>" required>
                                 </div>
 
                                 <!-- Discount Type -->
                                 <div class="form-group">
                                     <label class="form-label required">Tipe Diskon</label>
-                                    <select class="form-select" required>
+                                    <select name="tipe_diskon" id="tipeDiskon" class="form-select" required>
                                         <option value="">Pilih tipe diskon</option>
-                                        <option value="percentage">Persentase (%)</option>
-                                        <option value="fixed">Nominal (Rp)</option>
+                                        <option value="persentase" <?= (isset($promoEdit) && $promoEdit['tipe_diskon'] === 'persentase') ? 'selected' : '' ?>>Persentase (%)</option>
+                                        <option value="nominal" <?= (isset($promoEdit) && $promoEdit['tipe_diskon'] === 'nominal') ? 'selected' : '' ?>>Nominal (Rp)</option>
                                     </select>
                                 </div>
 
@@ -638,38 +619,54 @@
                                 <div class="form-group">
                                     <label class="form-label required">Nilai Diskon</label>
                                     <div class="discount-input-group">
-                                        <input type="number" class="form-input" placeholder="0" min="0" required>
-                                        <span class="discount-suffix">%</span>
+                                        <input type="number" name="nilai_diskon" id="nilaiDiskon" class="form-input" 
+                                               placeholder="0" min="0" step="0.01"
+                                               value="<?= isset($promoEdit) ? esc($promoEdit['nilai_diskon']) : '' ?>" required>
+                                        <span class="discount-suffix" id="discountSuffix">%</span>
                                     </div>
                                 </div>
 
-                                <!-- Target Products -->
+                                <!-- Target Type -->
                                 <div class="form-group full-width">
-                                    <label class="form-label required">Produk Target</label>
-                                    <div class="product-select-list">
-                                        <div class="product-checkbox-item">
-                                            <input type="checkbox" id="product-1" value="1">
-                                            <label for="product-1">Laptop Gaming ROG</label>
-                                        </div>
-                                        <div class="product-checkbox-item">
-                                            <input type="checkbox" id="product-2" value="2">
-                                            <label for="product-2">Smartphone Pro Max</label>
-                                        </div>
-                                        <div class="product-checkbox-item">
-                                            <input type="checkbox" id="product-3" value="3">
-                                            <label for="product-3">Headphone Wireless</label>
-                                        </div>
-                                        <div class="product-checkbox-item">
-                                            <input type="checkbox" id="product-4" value="4">
-                                            <label for="product-4">Smartwatch Series 8</label>
-                                        </div>
+                                    <label class="form-label required">Tipe Target</label>
+                                    <select name="target_tipe" id="targetTipe" class="form-select" required>
+                                        <option value="">Pilih tipe target</option>
+                                        <option value="produk" <?= (isset($promoEdit) && ($promoEdit['target_tipe'] ?? 'produk') === 'produk') ? 'selected' : '' ?>>Produk</option>
+                                        <option value="kategori" <?= (isset($promoEdit) && ($promoEdit['target_tipe'] ?? '') === 'kategori') ? 'selected' : '' ?>>Kategori</option>
+                                        <option value="menu" <?= (isset($promoEdit) && ($promoEdit['target_tipe'] ?? '') === 'menu') ? 'selected' : '' ?>>Menu</option>
+                                    </select>
+                                </div>
+
+                                <!-- Target Selection (Dynamic based on target_tipe) -->
+                                <div class="form-group full-width" id="targetSelection">
+                                    <label class="form-label required">Pilih Target</label>
+                                    <div id="targetContainer">
+                                        <!-- Will be populated by JavaScript -->
                                     </div>
+                                </div>
+
+                                <!-- Voucher Code (only for voucher type) -->
+                                <div class="form-group" id="voucherCodeGroup" style="display: none;">
+                                    <label class="form-label">Kode Voucher</label>
+                                    <input type="text" name="kode_voucher" class="form-input" 
+                                           placeholder="Kode voucher (kosongkan untuk auto-generate)"
+                                           value="<?= isset($promoEdit) ? esc($promoEdit['kode_voucher'] ?? '') : '' ?>">
+                                </div>
+
+                                <!-- Limit Stok (Optional) -->
+                                <div class="form-group">
+                                    <label class="form-label">Limit Stok Promo</label>
+                                    <input type="number" name="limit_stok" class="form-input" 
+                                           placeholder="Kosongkan jika tidak ada limit"
+                                           min="0"
+                                           value="<?= isset($promoEdit) ? esc($promoEdit['limit_stok'] ?? '') : '' ?>">
+                                    <small style="color: #6B7280; font-size: 12px;">Kosongkan jika tidak ada batasan jumlah</small>
                                 </div>
 
                                 <!-- Description -->
                                 <div class="form-group full-width">
                                     <label class="form-label">Deskripsi Promo</label>
-                                    <textarea class="form-textarea" placeholder="Jelaskan detail promo..."></textarea>
+                                    <textarea name="deskripsi_promo" class="form-textarea" rows="4" placeholder="Jelaskan detail promo, syarat & ketentuan..."><?= isset($promoEdit) ? esc($promoEdit['deskripsi_promo'] ?? '') : '' ?></textarea>
                                 </div>
                             </div>
 
@@ -677,9 +674,13 @@
                             <div class="form-actions">
                                 <button type="submit" class="btn-submit">
                                     <img src="<?= base_url('assets/img/pluswhite.png') ?>" alt="Plus">
-                                    <span>Tambah Promo</span>
+                                    <span><?= isset($editId) && $editId ? 'Update Promo' : 'Tambah Promo' ?></span>
                                 </button>
-                                <button type="button" class="btn-cancel">Batal</button>
+                                <?php if (isset($editId) && $editId): ?>
+                                    <a href="<?= site_url('admin/promo') ?>" class="btn-cancel">Batal Edit</a>
+                                <?php else: ?>
+                                    <button type="button" class="btn-cancel" onclick="document.getElementById('promoForm').reset()">Batal</button>
+                                <?php endif; ?>
                             </div>
                         </form>
                     </div>
@@ -688,87 +689,179 @@
         </div>
     </div>
 
+    <!-- Sidebar Toggle Script - Centralized -->
+    <script src="<?= base_url('assets/js/sidebar.js') ?>"></script>
+    
     <script>
-        // Sidebar Toggle Functionality
-        const sidebar = document.getElementById('sidebar');
-        const sidebarToggle = document.getElementById('sidebarToggle');
-        const sidebarOverlay = document.getElementById('sidebarOverlay');
-        const dashboardContainer = document.querySelector('.dashboard-container');
+        // Promo Form Functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const tipeDiskon = document.getElementById('tipeDiskon');
+            const nilaiDiskon = document.getElementById('nilaiDiskon');
+            const discountSuffix = document.getElementById('discountSuffix');
+            const targetTipe = document.getElementById('targetTipe');
+            const targetContainer = document.getElementById('targetContainer');
+            const tipePromo = document.getElementById('tipePromo');
+            const voucherCodeGroup = document.getElementById('voucherCodeGroup');
 
-        function isMobile() {
-            return window.innerWidth <= 768;
-        }
+            // Data untuk target selection
+            const produkData = <?= json_encode($produk ?? []) ?>;
+            const kategoriData = <?= json_encode($kategori ?? []) ?>;
+            const menuData = <?= json_encode($menu ?? []) ?>;
 
-        function toggleSidebar() {
-            if (isMobile()) {
-                sidebar.classList.toggle('collapsed');
-                sidebarOverlay.classList.toggle('active');
-            } else {
-                dashboardContainer.classList.toggle('sidebar-collapsed');
-                sidebar.classList.toggle('collapsed');
-                const isCollapsed = dashboardContainer.classList.contains('sidebar-collapsed');
-                localStorage.setItem('sidebarCollapsed', isCollapsed);
+            // Edit mode data
+            const promoEdit = <?= json_encode($promoEdit ?? null) ?>;
+
+            // Handle discount type change
+            if (tipeDiskon) {
+                tipeDiskon.addEventListener('change', function() {
+                    if (this.value === 'persentase') {
+                        discountSuffix.textContent = '%';
+                        nilaiDiskon.step = '0.01';
+                    } else {
+                        discountSuffix.textContent = 'Rp';
+                        nilaiDiskon.step = '1';
+                    }
+                });
             }
-        }
 
-        sidebarToggle.addEventListener('click', toggleSidebar);
-        sidebarOverlay.addEventListener('click', () => {
-            if (isMobile()) {
-                sidebar.classList.add('collapsed');
-                sidebarOverlay.classList.remove('active');
-            }
-        });
-
-        function loadSidebarState() {
-            if (!isMobile()) {
-                const savedState = localStorage.getItem('sidebarCollapsed');
-                if (savedState === 'true') {
-                    dashboardContainer.classList.add('sidebar-collapsed');
-                    sidebar.classList.add('collapsed');
-                } else {
-                    sidebar.classList.remove('collapsed');
-                    dashboardContainer.classList.remove('sidebar-collapsed');
+            // Handle promo type change (show/hide voucher code)
+            if (tipePromo) {
+                tipePromo.addEventListener('change', function() {
+                    if (this.value === 'voucher') {
+                        voucherCodeGroup.style.display = 'block';
+                    } else {
+                        voucherCodeGroup.style.display = 'none';
+                    }
+                });
+                
+                // Trigger on load
+                if (tipePromo.value === 'voucher') {
+                    voucherCodeGroup.style.display = 'block';
                 }
-            } else {
-                sidebar.classList.add('collapsed');
-                sidebarOverlay.classList.remove('active');
+            }
+
+            // Function to render target selection
+            function renderTargetSelection(tipe) {
+            targetContainer.innerHTML = '';
+            
+            if (tipe === 'produk') {
+                const container = document.createElement('div');
+                container.className = 'product-select-list';
+                container.style.cssText = 'max-height: 300px; overflow-y: auto; border: 1px solid #E5E7EB; border-radius: 8px; padding: 12px;';
+                
+                produkData.forEach(produk => {
+                    const item = document.createElement('div');
+                    item.className = 'product-checkbox-item';
+                    item.style.cssText = 'display: flex; align-items: center; gap: 8px; padding: 8px;';
+                    
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.name = 'target_produk[]';
+                    checkbox.value = produk.id_produk;
+                    checkbox.id = 'produk-' + produk.id_produk;
+                    
+                    // Check if in edit mode
+                    if (promoEdit && promoEdit.target_produk_array && promoEdit.target_produk_array.includes(produk.id_produk)) {
+                        checkbox.checked = true;
+                    }
+                    
+                    const label = document.createElement('label');
+                    label.htmlFor = 'produk-' + produk.id_produk;
+                    label.textContent = produk.nama_produk;
+                    label.style.cssText = 'cursor: pointer; flex: 1;';
+                    
+                    item.appendChild(checkbox);
+                    item.appendChild(label);
+                    container.appendChild(item);
+                });
+                
+                targetContainer.appendChild(container);
+            } else if (tipe === 'kategori') {
+                const container = document.createElement('div');
+                container.className = 'kategori-select-list';
+                container.style.cssText = 'max-height: 300px; overflow-y: auto; border: 1px solid #E5E7EB; border-radius: 8px; padding: 12px;';
+                
+                kategoriData.forEach(kat => {
+                    const item = document.createElement('div');
+                    item.className = 'kategori-checkbox-item';
+                    item.style.cssText = 'display: flex; align-items: center; gap: 8px; padding: 8px;';
+                    
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.name = 'target_kategori[]';
+                    checkbox.value = kat.id_kategori;
+                    checkbox.id = 'kategori-' + kat.id_kategori;
+                    
+                    // Check if in edit mode
+                    if (promoEdit && promoEdit.target_kategori_array && promoEdit.target_kategori_array.includes(kat.id_kategori)) {
+                        checkbox.checked = true;
+                    }
+                    
+                    const label = document.createElement('label');
+                    label.htmlFor = 'kategori-' + kat.id_kategori;
+                    label.textContent = kat.nama_kategori;
+                    label.style.cssText = 'cursor: pointer; flex: 1;';
+                    
+                    item.appendChild(checkbox);
+                    item.appendChild(label);
+                    container.appendChild(item);
+                });
+                
+                targetContainer.appendChild(container);
+            } else if (tipe === 'menu') {
+                const container = document.createElement('div');
+                container.className = 'menu-select-list';
+                container.style.cssText = 'max-height: 300px; overflow-y: auto; border: 1px solid #E5E7EB; border-radius: 8px; padding: 12px;';
+                
+                menuData.forEach(menu => {
+                    const item = document.createElement('div');
+                    item.className = 'menu-checkbox-item';
+                    item.style.cssText = 'display: flex; align-items: center; gap: 8px; padding: 8px;';
+                    
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.name = 'target_menu[]';
+                    checkbox.value = menu.id_menu;
+                    checkbox.id = 'menu-' + menu.id_menu;
+                    
+                    // Check if in edit mode
+                    if (promoEdit && promoEdit.target_menu_array && promoEdit.target_menu_array.includes(menu.id_menu)) {
+                        checkbox.checked = true;
+                    }
+                    
+                    const label = document.createElement('label');
+                    label.htmlFor = 'menu-' + menu.id_menu;
+                    label.textContent = menu.nama_menu;
+                    label.style.cssText = 'cursor: pointer; flex: 1;';
+                    
+                    item.appendChild(checkbox);
+                    item.appendChild(label);
+                    container.appendChild(item);
+                });
+                
+                targetContainer.appendChild(container);
             }
         }
 
-        window.addEventListener('resize', () => {
-            if (isMobile()) {
-                sidebarOverlay.classList.remove('active');
-                if (!sidebar.classList.contains('collapsed')) {
-                    sidebar.classList.add('collapsed');
+            // Handle target type change
+            if (targetTipe) {
+                targetTipe.addEventListener('change', function() {
+                    renderTargetSelection(this.value);
+                });
+                
+                // Load initial target selection if in edit mode
+                if (promoEdit && promoEdit.target_tipe) {
+                    renderTargetSelection(promoEdit.target_tipe);
+                } else if (targetTipe.value) {
+                    renderTargetSelection(targetTipe.value);
                 }
-                dashboardContainer.classList.remove('sidebar-collapsed');
-            } else {
-                sidebarOverlay.classList.remove('active');
-                loadSidebarState();
             }
-        });
 
-        loadSidebarState();
-
-        // Discount Type Change
-        const discountTypeSelect = document.querySelector('select[required]');
-        const discountSuffix = document.querySelector('.discount-suffix');
-        
-        if (discountTypeSelect) {
-            discountTypeSelect.addEventListener('change', (e) => {
-                if (e.target.value === 'percentage') {
-                    discountSuffix.textContent = '%';
-                } else if (e.target.value === 'fixed') {
-                    discountSuffix.textContent = 'Rp';
-                }
-            });
-        }
-
-        // Form Submit
-        document.getElementById('promoForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            console.log('Promo form submitted');
-        });
+            // Initialize discount suffix on load
+            if (tipeDiskon && tipeDiskon.value) {
+                tipeDiskon.dispatchEvent(new Event('change'));
+            }
+        }); // End of DOMContentLoaded
     </script>
 </body>
 

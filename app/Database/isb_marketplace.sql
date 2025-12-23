@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Waktu pembuatan: 17 Des 2025 pada 09.16
+-- Waktu pembuatan: 17 Des 2025 pada 17.46
 -- Versi server: 8.0.30
 -- Versi PHP: 8.1.10
 
@@ -67,7 +67,8 @@ CREATE TABLE `detail_pesanan` (
   `id_produk` int DEFAULT NULL,
   `jumlah` int DEFAULT NULL,
   `harga` int DEFAULT NULL,
-  `subtotal` int DEFAULT NULL
+  `subtotal` int DEFAULT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
@@ -91,7 +92,8 @@ CREATE TABLE `kategori` (
 --
 
 INSERT INTO `kategori` (`id_kategori`, `nama_kategori`, `deskripsi_kategori`, `icon_kategori`, `status`, `created_at`, `updated_at`) VALUES
-(1, 'Makanan', 'Makanan yang fresh dan terjamin baru dikirim dari pusat', 'uploads/kategori/1765950298_12ff773d6ae945158311.jpg', 'aktif', '2025-12-17 05:44:58', '2025-12-17 05:44:58');
+(1, 'Makanan', 'Makanan yang fresh dan terjamin baru dikirim dari pusat', 'uploads/kategori/1765965931_6e9d53da22395cf050b0.jpeg', 'aktif', '2025-12-17 05:44:58', '2025-12-17 10:05:31'),
+(2, 'elektronik', 'alat alat', 'uploads/kategori/1765966005_3099d936163816560d6c.jpg', 'aktif', '2025-12-17 10:06:45', '2025-12-17 10:06:45');
 
 -- --------------------------------------------------------
 
@@ -128,7 +130,8 @@ CREATE TABLE `menu` (
 --
 
 INSERT INTO `menu` (`id_menu`, `id_kategori`, `nama_menu`, `deskripsi_menu`, `status`, `created_at`, `updated_at`) VALUES
-(1, 1, 'Indomie', 'Makanan pemersatu bangsa', 'aktif', '2025-12-17 05:46:07', '2025-12-17 05:46:07');
+(1, 1, 'Indomie', 'Makanan pemersatu bangsa', 'aktif', '2025-12-17 05:46:07', '2025-12-17 05:46:07'),
+(3, 2, 'kipas angin', 'ugsbdua', 'aktif', '2025-12-17 10:07:23', '2025-12-17 10:07:23');
 
 -- --------------------------------------------------------
 
@@ -168,16 +171,39 @@ CREATE TABLE `penjual` (
 
 CREATE TABLE `pesanan` (
   `id_pesan` int NOT NULL,
+  `no_pesanan` varchar(50) DEFAULT NULL COMMENT 'Nomor pesanan unik (ORD-001)',
   `id_user` int DEFAULT NULL,
   `id_alamat` int DEFAULT NULL,
   `tanggal_pesan` datetime DEFAULT NULL,
+  `tanggal_kirim` datetime DEFAULT NULL COMMENT 'Tanggal pengiriman',
+  `tanggal_selesai` datetime DEFAULT NULL COMMENT 'Tanggal selesai',
   `metode_pengiriman` varchar(50) DEFAULT NULL,
+  `no_resi` varchar(100) DEFAULT NULL COMMENT 'Nomor resi pengiriman',
   `ongkir` int DEFAULT NULL,
   `total_harga` int DEFAULT NULL,
   `total_bayar` int DEFAULT NULL,
   `id_voucher` int DEFAULT NULL,
-  `status_pesanan` varchar(20) DEFAULT NULL
+  `status_pesanan` enum('Diproses','Dikirim','Selesai','Dibatalkan') DEFAULT 'Diproses',
+  `catatan_admin` text COMMENT 'Catatan admin untuk pesanan',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `pesanan_status_log`
+--
+
+CREATE TABLE `pesanan_status_log` (
+  `id_log` int NOT NULL,
+  `id_pesan` int NOT NULL,
+  `status_sebelumnya` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `status_baru` varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
+  `dibuat_oleh` int DEFAULT NULL COMMENT 'ID admin yang mengubah status',
+  `keterangan` text COLLATE utf8mb4_general_ci COMMENT 'Keterangan perubahan status',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -190,6 +216,7 @@ CREATE TABLE `produk` (
   `id_toko` int DEFAULT NULL,
   `nama_produk` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
   `deskripsi_produk` text COLLATE utf8mb4_general_ci,
+  `gambar_produk` text COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'JSON array of image paths: ["path1.jpg", "path2.jpg"]',
   `id_kategori` int DEFAULT NULL,
   `id_menu` int DEFAULT NULL,
   `merek` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
@@ -206,18 +233,29 @@ CREATE TABLE `produk` (
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data untuk tabel `produk`
+--
+
+INSERT INTO `produk` (`id_produk`, `id_toko`, `nama_produk`, `deskripsi_produk`, `gambar_produk`, `id_kategori`, `id_menu`, `merek`, `harga_awal`, `harga_diskon`, `tipe_diskon`, `id_promo`, `harga_setelah_diskon`, `stok`, `sku`, `berat`, `status_produk`, `created_at`, `updated_at`) VALUES
+(20, 1, 'Indomie pack', 'selerakuu', 'uploads/produk/1765969793_788a7469deb3da6ee246.jpg', 1, 1, 'Indofood', 5000.00, 5.00, 'persentase', NULL, 4750.00, 10, 'SKU-001', 5, 'aktif', '2025-12-17 11:09:53', '2025-12-17 11:09:53');
+
 -- --------------------------------------------------------
 
 --
--- Struktur dari tabel `produk_foto`
+-- Struktur dari tabel `produk_varian`
 --
 
-CREATE TABLE `produk_foto` (
-  `id_foto` int NOT NULL,
+CREATE TABLE `produk_varian` (
+  `id_varian` int NOT NULL,
   `id_produk` int NOT NULL,
-  `foto_produk` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
-  `urutan` int DEFAULT '1',
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP
+  `nama_varian` varchar(255) COLLATE utf8mb4_general_ci NOT NULL COMMENT 'Nama varian (contoh: Warna, Ukuran)',
+  `nilai_varian` varchar(255) COLLATE utf8mb4_general_ci NOT NULL COMMENT 'Nilai varian (contoh: Merah, XL)',
+  `harga_tambahan` decimal(15,2) DEFAULT 0.00 COMMENT 'Harga tambahan untuk varian ini',
+  `stok_varian` int DEFAULT 0 COMMENT 'Stok untuk varian ini',
+  `sku_varian` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'SKU khusus untuk varian',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -232,10 +270,19 @@ CREATE TABLE `promo` (
   `nama_promo` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
   `tipe_promo` enum('flash_sale','diskon_bundling','voucher') COLLATE utf8mb4_general_ci DEFAULT 'flash_sale',
   `tipe_diskon` enum('persentase','nominal') COLLATE utf8mb4_general_ci DEFAULT 'persentase',
+  `target_tipe` enum('produk','kategori','menu') COLLATE utf8mb4_general_ci DEFAULT 'produk' COMMENT 'Tipe target promo',
+  `target_produk` text COLLATE utf8mb4_general_ci COMMENT 'JSON array of product IDs',
+  `target_kategori` text COLLATE utf8mb4_general_ci COMMENT 'JSON array of kategori IDs',
+  `target_menu` text COLLATE utf8mb4_general_ci COMMENT 'JSON array of menu IDs',
   `nilai_diskon` decimal(10,2) NOT NULL,
   `tanggal_mulai` datetime NOT NULL,
   `tanggal_berakhir` datetime NOT NULL,
-  `target_produk` text COLLATE utf8mb4_general_ci COMMENT 'JSON array of product IDs',
+  `deskripsi_promo` text COLLATE utf8mb4_general_ci COMMENT 'Deskripsi dan syarat ketentuan promo',
+  `limit_stok` int DEFAULT NULL COMMENT 'Limitasi stok promo (NULL = tidak ada limit)',
+  `stok_terpakai` int DEFAULT 0 COMMENT 'Stok promo yang sudah terpakai',
+  `kode_voucher` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'Kode voucher untuk tipe voucher',
+  `total_penjualan` decimal(15,2) DEFAULT 0.00 COMMENT 'Total penjualan dari promo',
+  `total_pesanan` int DEFAULT 0 COMMENT 'Total pesanan dari promo',
   `status` enum('aktif','tidak_aktif','selesai') COLLATE utf8mb4_general_ci DEFAULT 'aktif',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -366,8 +413,8 @@ ALTER TABLE `alamat_user`
 --
 ALTER TABLE `detail_pesanan`
   ADD PRIMARY KEY (`id_detail`),
-  ADD KEY `id_pesan` (`id_pesan`),
-  ADD KEY `id_produk` (`id_produk`);
+  ADD KEY `idx_pesan` (`id_pesan`),
+  ADD KEY `idx_produk` (`id_produk`);
 
 --
 -- Indeks untuk tabel `kategori`
@@ -413,7 +460,18 @@ ALTER TABLE `pesanan`
   ADD PRIMARY KEY (`id_pesan`),
   ADD KEY `id_user` (`id_user`),
   ADD KEY `id_alamat` (`id_alamat`),
-  ADD KEY `id_voucher` (`id_voucher`);
+  ADD KEY `id_voucher` (`id_voucher`),
+  ADD KEY `idx_status` (`status_pesanan`),
+  ADD KEY `idx_no_pesanan` (`no_pesanan`),
+  ADD KEY `idx_tanggal` (`tanggal_pesan`);
+
+--
+-- Indeks untuk tabel `pesanan_status_log`
+--
+ALTER TABLE `pesanan_status_log`
+  ADD PRIMARY KEY (`id_log`),
+  ADD KEY `idx_pesan` (`id_pesan`),
+  ADD KEY `idx_tanggal` (`created_at`);
 
 --
 -- Indeks untuk tabel `produk`
@@ -427,10 +485,10 @@ ALTER TABLE `produk`
   ADD KEY `idx_sku` (`sku`);
 
 --
--- Indeks untuk tabel `produk_foto`
+-- Indeks untuk tabel `produk_varian`
 --
-ALTER TABLE `produk_foto`
-  ADD PRIMARY KEY (`id_foto`),
+ALTER TABLE `produk_varian`
+  ADD PRIMARY KEY (`id_varian`),
   ADD KEY `idx_produk` (`id_produk`);
 
 --
@@ -439,8 +497,19 @@ ALTER TABLE `produk_foto`
 ALTER TABLE `promo`
   ADD PRIMARY KEY (`id_promo`),
   ADD KEY `idx_toko` (`id_toko`),
-  ADD KEY `idx_status` (`status`),
-  ADD KEY `idx_tanggal` (`tanggal_mulai`,`tanggal_berakhir`);
+  ADD KEY `idx_tipe_promo` (`tipe_promo`),
+  ADD KEY `idx_status_promo` (`status`),
+  ADD KEY `idx_tanggal_promo` (`tanggal_mulai`,`tanggal_berakhir`);
+
+--
+-- Indeks untuk tabel `promo`
+--
+ALTER TABLE `promo`
+  ADD PRIMARY KEY (`id_promo`),
+  ADD KEY `idx_toko` (`id_toko`),
+  ADD KEY `idx_tipe_promo` (`tipe_promo`),
+  ADD KEY `idx_status_promo` (`status`),
+  ADD KEY `idx_tanggal_promo` (`tanggal_mulai`,`tanggal_berakhir`);
 
 --
 -- Indeks untuk tabel `toko`
@@ -494,7 +563,7 @@ ALTER TABLE `detail_pesanan`
 -- AUTO_INCREMENT untuk tabel `kategori`
 --
 ALTER TABLE `kategori`
-  MODIFY `id_kategori` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_kategori` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT untuk tabel `keranjang`
@@ -506,7 +575,7 @@ ALTER TABLE `keranjang`
 -- AUTO_INCREMENT untuk tabel `menu`
 --
 ALTER TABLE `menu`
-  MODIFY `id_menu` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_menu` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT untuk tabel `pembayaran`
@@ -527,16 +596,22 @@ ALTER TABLE `pesanan`
   MODIFY `id_pesan` int NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT untuk tabel `pesanan_status_log`
+--
+ALTER TABLE `pesanan_status_log`
+  MODIFY `id_log` int NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT untuk tabel `produk`
 --
 ALTER TABLE `produk`
-  MODIFY `id_produk` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id_produk` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
--- AUTO_INCREMENT untuk tabel `produk_foto`
+-- AUTO_INCREMENT untuk tabel `produk_varian`
 --
-ALTER TABLE `produk_foto`
-  MODIFY `id_foto` int NOT NULL AUTO_INCREMENT;
+ALTER TABLE `produk_varian`
+  MODIFY `id_varian` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT untuk tabel `promo`
@@ -619,10 +694,16 @@ ALTER TABLE `pesanan`
   ADD CONSTRAINT `pesanan_ibfk_3` FOREIGN KEY (`id_voucher`) REFERENCES `voucher` (`id_voucher`);
 
 --
--- Ketidakleluasaan untuk tabel `produk_foto`
+-- Ketidakleluasaan untuk tabel `pesanan_status_log`
 --
-ALTER TABLE `produk_foto`
-  ADD CONSTRAINT `fk_produk_foto_produk` FOREIGN KEY (`id_produk`) REFERENCES `produk` (`id_produk`) ON DELETE CASCADE;
+ALTER TABLE `pesanan_status_log`
+  ADD CONSTRAINT `fk_log_pesanan` FOREIGN KEY (`id_pesan`) REFERENCES `pesanan` (`id_pesan`) ON DELETE CASCADE;
+
+--
+-- Ketidakleluasaan untuk tabel `produk_varian`
+--
+ALTER TABLE `produk_varian`
+  ADD CONSTRAINT `fk_produk_varian_produk` FOREIGN KEY (`id_produk`) REFERENCES `produk` (`id_produk`) ON DELETE CASCADE;
 
 --
 -- Ketidakleluasaan untuk tabel `ulasan_produk`

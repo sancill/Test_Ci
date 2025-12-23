@@ -117,6 +117,8 @@
 
         .table-container {
             overflow-x: auto;
+            overflow-y: auto;
+            max-height: 600px;
             -webkit-overflow-scrolling: touch;
         }
 
@@ -208,64 +210,25 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
+            cursor: pointer !important;
             transition: background 0.2s;
+            pointer-events: auto !important;
+            position: relative;
+            z-index: 10;
         }
 
         .action-btn:hover {
             background: #F3F4F6;
         }
 
-        .action-btn img {
+        .action-btn img,
+        .action-btn svg {
             width: 16px;
             height: 20px;
             object-fit: contain;
+            pointer-events: none;
         }
 
-        .table-footer {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-top: 24px;
-            flex-wrap: wrap;
-            gap: 16px;
-        }
-
-        .table-info {
-            font-size: 14px;
-            color: #6B7280;
-        }
-
-        .pagination {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-
-        .page-btn {
-            min-width: 40px;
-            height: 40px;
-            padding: 0 12px;
-            border: 1px solid #D1D5DB;
-            border-radius: 8px;
-            background: #FFFFFF;
-            color: #374151;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .page-btn:hover {
-            border-color: #2563EB;
-            color: #2563EB;
-        }
-
-        .page-btn.active {
-            background: #2563EB;
-            border-color: #2563EB;
-            color: #FFFFFF;
-        }
 
         .btn-primary {
             display: flex;
@@ -302,8 +265,8 @@
 
         .file-preview-item {
             position: relative;
-            width: 100px;
-            height: 100px;
+            width: 200px;
+            height: 200px;
             border-radius: 8px;
             overflow: hidden;
             border: 1px solid #E5E7EB;
@@ -372,14 +335,6 @@
                 gap: 8px;
             }
 
-            .table-footer {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .pagination {
-                flex-wrap: wrap;
-            }
         }
 
         @media (max-width: 390px) {
@@ -528,7 +483,7 @@
         .upload-area {
             border: 2px dashed #D1D5DB;
             border-radius: 8px;
-            padding: clamp(32px, 4vw, 48px);
+            padding: 32px;
             text-align: center;
             cursor: pointer;
             transition: all 0.2s;
@@ -618,6 +573,8 @@
         .form-actions-left {
             display: flex;
             gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
         }
 
         .btn-submit {
@@ -701,13 +658,17 @@
             .form-actions-left {
                 width: 100%;
                 flex-direction: column;
+                gap: 8px;
             }
 
             .btn-submit,
             .btn-cancel,
-            .btn-preview {
+            .btn-preview,
+            .form-actions-left a {
                 width: 100%;
                 justify-content: center;
+                display: flex;
+                align-items: center;
             }
         }
 
@@ -746,7 +707,7 @@
         <div class="main-content">
             <!-- Header -->
             <header class="dashboard-header">
-                <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+                <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar" type="button">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
@@ -782,6 +743,26 @@
                         <p class="page-subtitle">Kelola semua produk di toko Anda</p>
                     </div>
 
+                    <?php if (session()->getFlashdata('success')): ?>
+                        <div style="background: #D1FAE5; color: #065F46; padding: 12px 16px; border-radius: 8px; margin-bottom: 24px;">
+                            <?= session()->getFlashdata('success') ?>
+                        </div>
+                    <?php endif; ?>
+                    <?php if (session()->getFlashdata('error')): ?>
+                        <div style="background: #FEE2E2; color: #991B1B; padding: 12px 16px; border-radius: 8px; margin-bottom: 24px;">
+                            <?= session()->getFlashdata('error') ?>
+                        </div>
+                    <?php endif; ?>
+                    <?php if (session()->getFlashdata('errors')): ?>
+                        <div style="background: #FEE2E2; color: #991B1B; padding: 12px 16px; border-radius: 8px; margin-bottom: 24px;">
+                            <ul style="margin: 0; padding-left: 20px;">
+                                <?php foreach (session()->getFlashdata('errors') as $error): ?>
+                                    <li><?= esc($error) ?></li>
+                                <?php endforeach; ?>
+                            </ul>
+                        </div>
+                    <?php endif; ?>
+
                     <div class="products-section">
                         <div class="section-header">
                             <div class="section-title-group">
@@ -794,11 +775,11 @@
                             </button>
                         </div>
 
-                        <form method="get" action="<?= base_url('admin/produk') ?>" class="filters">
+                        <form method="get" action="<?= base_url('admin/produk') ?>" class="filters" id="filterForm">
                             <div class="search-filter">
-                                <input type="text" name="search" placeholder="Cari produk..." class="filter-input" value="<?= esc($search ?? '') ?>">
+                                <input type="text" name="search" id="searchInput" placeholder="Cari produk..." class="filter-input" value="<?= esc($search ?? '') ?>" onkeypress="if(event.key === 'Enter') { event.preventDefault(); document.getElementById('filterForm').submit(); }">
                                 <svg width="16" height="24" viewBox="0 0 16 24" fill="none"
-                                    xmlns="http://www.w3.org/2000/svg" class="filter-icon">
+                                    xmlns="http://www.w3.org/2000/svg" class="filter-icon" style="cursor: pointer;" onclick="document.getElementById('filterForm').submit();">
                                     <path
                                         d="M7 14C10.866 14 14 10.866 14 7C14 3.13401 10.866 0 7 0C3.13401 0 0 3.13401 0 7C0 10.866 3.13401 14 7 14Z"
                                         stroke="currentColor" stroke-width="2" />
@@ -838,7 +819,7 @@
                             <table class="data-table">
                                 <thead>
                                     <tr>
-                                        <th><input type="checkbox"></th>
+                                        <th>No.</th>
                                         <th>Produk</th>
                                         <th>Kategori</th>
                                         <th>Menu</th>
@@ -849,25 +830,35 @@
                                 </thead>
                                 <tbody>
                                     <?php if (!empty($produk)): ?>
-                                        <?php foreach ($produk as $p): ?>
+                                        <?php $no = 1; foreach ($produk as $p): ?>
                                             <?php
-                                            $produkModel = new \App\Models\ProdukModel();
-                                            $fotos = $produkModel->getProdukFoto($p['id_produk']);
+                                            // Get product image from database (from produk table)
+                                            $fotoUtama = null;
+                                            // Get gambar urutan 1 (gambar inti) dari JSON
+                                            $fotoUtama = base_url('assets/img/product.png'); // Default fallback
+                                            if (!empty($p['gambar_produk'])) {
+                                                $decoded = json_decode($p['gambar_produk'], true);
+                                                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded) && !empty($decoded)) {
+                                                    // Ambil gambar pertama (urutan 1 - gambar inti)
+                                                    $fotoPath = $decoded[0];
+                                                    $fotoPath = ltrim($fotoPath, '/');
+                                                    $fotoUtama = base_url($fotoPath);
+                                                } else {
+                                                    // Fallback: jika bukan JSON, anggap sebagai single image
+                                                    $fotoPath = $p['gambar_produk'];
+                                                    $fotoPath = ltrim($fotoPath, '/');
+                                                    $fotoUtama = base_url($fotoPath);
+                                                }
+                                            }
                                             
-                                            // Determine the image URL
-                                            if (!empty($fotos) && !empty($fotos[0]['foto_produk'])) {
-                                                $fotoPath = $fotos[0]['foto_produk'];
-                                                // Ensure path doesn't start with / or have double slashes
-                                                $fotoPath = ltrim($fotoPath, '/');
-                                                // Use the image path directly - browser will handle 404 if file doesn't exist
-                                                $fotoUtama = base_url($fotoPath);
-                                            } else {
-                                                // Use a generic placeholder or a default product image
+                                            // Fallback jika tidak ada gambar
+                                            if (empty($p['gambar_produk'])) {
+                                                // No image in database - use placeholder
                                                 $fotoUtama = base_url('assets/img/product.png');
                                             }
                                             ?>
                                             <tr>
-                                                <td><input type="checkbox"></td>
+                                                <td><?= $no++ ?></td>
                                                 <td>
                                                     <div class="product-cell">
                                                         <div class="product-image">
@@ -918,54 +909,58 @@
                                 </tbody>
                             </table>
                         </div>
-
-                        <div class="table-footer">
-                            <p class="table-info">Menampilkan 1-4 dari 1,284 produk</p>
-                            <div class="pagination">
-                                <button class="page-btn">Sebelumnya</button>
-                                <button class="page-btn active">1</button>
-                                <button class="page-btn">2</button>
-                                <button class="page-btn">3</button>
-                                <button class="page-btn">Selanjutnya</button>
-                            </div>
-                        </div>
                     </div>
 
-                    <!-- Add Product Form Section -->
+                    <!-- Add/Edit Product Form Section -->
                     <div class="add-product-section">
                         <div class="form-header">
-                            <h2 class="form-title">Tambah Produk Baru</h2>
-                            <p class="form-subtitle">Lengkapi informasi produk yang akan ditambahkan</p>
+                            <h2 class="form-title"><?= isset($editId) && $editId ? 'Edit Produk' : 'Tambah Produk Baru' ?></h2>
+                            <p class="form-subtitle"><?= isset($editId) && $editId ? 'Ubah informasi produk yang ada' : 'Lengkapi informasi produk yang akan ditambahkan' ?></p>
                         </div>
 
-                        <form id="addProductForm" action="<?= base_url('admin/simpan_produk') ?>" method="post" enctype="multipart/form-data">
+                        <form id="addProductForm" action="<?= isset($editId) && $editId ? base_url('admin/update_produk/' . $editId) : base_url('admin/simpan_produk') ?>" method="post" enctype="multipart/form-data">
                             <?= csrf_field() ?>
                             <div class="form-grid">
-                                <!-- Product Image Upload -->
+                                <!-- Gambar Inti (Urutan 1) - Hanya 1 gambar -->
                                 <div class="form-group full-width">
-                                    <label class="form-label">Gambar Produk</label>
-                                    <div class="upload-area" id="uploadArea">
+                                    <label class="form-label required">Gambar Inti Produk <span style="color: #6B7280; font-weight: normal;">(Gambar utama untuk tampilan produk)</span></label>
+                                    <div class="upload-area" id="uploadAreaInti">
                                         <svg class="upload-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                             <path d="M7 18C4.23858 18 2 15.7614 2 13C2 10.2386 4.23858 8 7 8C7.35138 8 7.68838 8.03357 8.01116 8.09569C8.54744 6.13037 10.3453 4.75 12.5 4.75C15.1234 4.75 17.25 6.87665 17.25 9.5C17.25 9.77614 17.2239 10.0458 17.1746 10.3069C18.4659 10.9846 19.25 12.3515 19.25 13.875C19.25 16.1868 17.4368 18 15.125 18H7Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                             <path d="M12 8V16M8 12H16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                                         </svg>
                                         <p class="upload-text">Klik untuk upload atau drag & drop</p>
-                                        <p class="upload-hint">PNG, JPG, GIF hingga 10MB</p>
-                                        <input type="file" id="productImage" name="gambar_produk[]" accept="image/*" style="display: none;" multiple>
-                                        <div id="imagePreview" class="image-preview-container"></div>
+                                        <p class="upload-hint">PNG, JPG, GIF hingga 10MB (Hanya 1 gambar)</p>
+                                        <input type="file" id="productImageInti" name="gambar_inti" accept="image/*" style="display: none;">
+                                        <div id="imagePreviewInti" class="image-preview-container"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Gambar Pendukung (Urutan 2, 3, 4, dst) - Multiple gambar -->
+                                <div class="form-group full-width">
+                                    <label class="form-label">Gambar Pendukung Produk <span style="color: #6B7280; font-weight: normal;">(Gambar tambahan, opsional)</span></label>
+                                    <div class="upload-area" id="uploadAreaPendukung">
+                                        <svg class="upload-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M7 18C4.23858 18 2 15.7614 2 13C2 10.2386 4.23858 8 7 8C7.35138 8 7.68838 8.03357 8.01116 8.09569C8.54744 6.13037 10.3453 4.75 12.5 4.75C15.1234 4.75 17.25 6.87665 17.25 9.5C17.25 9.77614 17.2239 10.0458 17.1746 10.3069C18.4659 10.9846 19.25 12.3515 19.25 13.875C19.25 16.1868 17.4368 18 15.125 18H7Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <path d="M12 8V16M8 12H16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                        </svg>
+                                        <p class="upload-text">Klik untuk upload atau drag & drop</p>
+                                        <p class="upload-hint">PNG, JPG, GIF hingga 10MB (Bisa multiple gambar)</p>
+                                        <input type="file" id="productImagePendukung" name="gambar_pendukung[]" accept="image/*" style="display: none;" multiple>
+                                        <div id="imagePreviewPendukung" class="image-preview-container"></div>
                                     </div>
                                 </div>
 
                                 <!-- Product Name -->
                                 <div class="form-group full-width">
                                     <label class="form-label required">Nama Produk</label>
-                                    <input type="text" name="nama_produk" class="form-input" placeholder="Masukkan nama produk" required>
+                                    <input type="text" name="nama_produk" id="nama_produk" class="form-input" placeholder="Masukkan nama produk" value="<?= isset($produkEdit) && $produkEdit ? esc($produkEdit['nama_produk']) : '' ?>" required>
                                 </div>
 
                                 <!-- Product Description -->
                                 <div class="form-group full-width">
                                     <label class="form-label">Deskripsi Produk</label>
-                                    <textarea name="deskripsi_produk" class="form-textarea" placeholder="Jelaskan detail produk Anda..."></textarea>
+                                    <textarea name="deskripsi_produk" id="deskripsi_produk" class="form-textarea" placeholder="Jelaskan detail produk Anda..."><?= isset($produkEdit) && $produkEdit ? esc($produkEdit['deskripsi_produk']) : '' ?></textarea>
                                 </div>
 
                                 <!-- Category -->
@@ -975,7 +970,7 @@
                                         <option value="">Pilih kategori</option>
                                         <?php if (!empty($kategori)): ?>
                                             <?php foreach ($kategori as $kat): ?>
-                                                <option value="<?= $kat['id_kategori'] ?>"><?= esc($kat['nama_kategori']) ?></option>
+                                                <option value="<?= $kat['id_kategori'] ?>" <?= (isset($produkEdit) && $produkEdit && $produkEdit['id_kategori'] == $kat['id_kategori']) ? 'selected' : '' ?>><?= esc($kat['nama_kategori']) ?></option>
                                             <?php endforeach; ?>
                                         <?php endif; ?>
                                     </select>
@@ -986,14 +981,18 @@
                                     <label class="form-label">Menu</label>
                                     <select name="id_menu" id="id_menu" class="form-select">
                                         <option value="">Pilih menu</option>
-                                        <!-- Menu akan di-load via AJAX berdasarkan kategori -->
+                                        <?php if (!empty($menuByKategori)): ?>
+                                            <?php foreach ($menuByKategori as $menuItem): ?>
+                                                <option value="<?= $menuItem['id_menu'] ?>" <?= (isset($produkEdit) && $produkEdit && isset($produkEdit['id_menu']) && $produkEdit['id_menu'] == $menuItem['id_menu']) ? 'selected' : '' ?>><?= esc($menuItem['nama_menu']) ?></option>
+                                            <?php endforeach; ?>
+                                        <?php endif; ?>
                                     </select>
                                 </div>
 
                                 <!-- Brand -->
                                 <div class="form-group">
                                     <label class="form-label">Merek</label>
-                                    <input type="text" name="merek" class="form-input" placeholder="Masukkan merek produk">
+                                    <input type="text" name="merek" id="merek" class="form-input" placeholder="Masukkan merek produk" value="<?= isset($produkEdit) && $produkEdit ? esc($produkEdit['merek'] ?? '') : '' ?>">
                                 </div>
 
                                 <!-- Harga Awal -->
@@ -1001,7 +1000,7 @@
                                     <label class="form-label required">Harga Awal</label>
                                     <div class="price-input-group">
                                         <span class="price-prefix">Rp</span>
-                                        <input type="number" id="harga_awal" name="harga_awal" class="form-input" placeholder="0" value="0" min="0" required oninput="calculateHargaSetelahDiskon()">
+                                        <input type="number" id="harga_awal" name="harga_awal" class="form-input" placeholder="0" value="<?= isset($produkEdit) && $produkEdit ? $produkEdit['harga_awal'] : '0' ?>" min="0" required oninput="calculateHargaSetelahDiskon()">
                                     </div>
                                 </div>
 
@@ -1012,7 +1011,7 @@
                                         <option value="">Pilih promo</option>
                                         <?php if (!empty($promo)): ?>
                                             <?php foreach ($promo as $pr): ?>
-                                                <option value="<?= $pr['id_promo'] ?>" data-tipe="<?= $pr['tipe_diskon'] ?>" data-nilai="<?= $pr['nilai_diskon'] ?>">
+                                                <option value="<?= $pr['id_promo'] ?>" data-tipe="<?= $pr['tipe_diskon'] ?>" data-nilai="<?= $pr['nilai_diskon'] ?>" <?= (isset($produkEdit) && $produkEdit && $produkEdit['id_promo'] == $pr['id_promo']) ? 'selected' : '' ?>>
                                                     <?= esc($pr['nama_promo']) ?> (<?= $pr['tipe_diskon'] == 'persentase' ? $pr['nilai_diskon'] . '%' : 'Rp ' . number_format($pr['nilai_diskon'], 0, ',', '.') ?>)
                                                 </option>
                                             <?php endforeach; ?>
@@ -1024,8 +1023,8 @@
                                 <div class="form-group">
                                     <label class="form-label">Tipe Diskon</label>
                                     <select name="tipe_diskon" id="tipe_diskon" class="form-select" onchange="calculateHargaSetelahDiskon()">
-                                        <option value="persentase">Persentase (%)</option>
-                                        <option value="nominal">Nominal (Rp)</option>
+                                        <option value="persentase" <?= (isset($produkEdit) && $produkEdit && ($produkEdit['tipe_diskon'] ?? 'persentase') == 'persentase') || !isset($produkEdit) ? 'selected' : '' ?>>Persentase (%)</option>
+                                        <option value="nominal" <?= isset($produkEdit) && $produkEdit && ($produkEdit['tipe_diskon'] ?? '') == 'nominal' ? 'selected' : '' ?>>Nominal (Rp)</option>
                                     </select>
                                 </div>
 
@@ -1034,7 +1033,7 @@
                                     <label class="form-label">Harga Diskon</label>
                                     <div class="price-input-group">
                                         <span class="price-prefix" id="diskon_prefix">%</span>
-                                        <input type="number" id="harga_diskon" name="harga_diskon" class="form-input" placeholder="0" value="0" min="0" oninput="calculateHargaSetelahDiskon()">
+                                        <input type="number" id="harga_diskon" name="harga_diskon" class="form-input" placeholder="0" value="<?= isset($produkEdit) && $produkEdit ? $produkEdit['harga_diskon'] : '0' ?>" min="0" oninput="calculateHargaSetelahDiskon()">
                                     </div>
                                 </div>
 
@@ -1043,26 +1042,26 @@
                                     <label class="form-label">Harga Setelah Diskon</label>
                                     <div class="price-input-group">
                                         <span class="price-prefix">Rp</span>
-                                        <input type="text" id="harga_setelah_diskon" class="form-input" readonly style="background-color: #F3F4F6; font-weight: 600; color: #DC2626;" value="0">
+                                        <input type="text" id="harga_setelah_diskon" class="form-input" readonly style="background-color: #F3F4F6; font-weight: 600; color: #DC2626;" value="<?= isset($produkEdit) && $produkEdit ? number_format($produkEdit['harga_setelah_diskon'] ?? 0, 0, ',', '.') : '0' ?>">
                                     </div>
                                 </div>
 
                                 <!-- Stock -->
                                 <div class="form-group">
                                     <label class="form-label required">Stok</label>
-                                    <input type="number" name="stok" class="form-input" placeholder="0" value="0" min="0" required>
+                                    <input type="number" name="stok" id="stok" class="form-input" placeholder="0" value="<?= isset($produkEdit) && $produkEdit ? $produkEdit['stok'] : '0' ?>" min="0" required>
                                 </div>
 
                                 <!-- SKU -->
                                 <div class="form-group">
                                     <label class="form-label">SKU</label>
-                                    <input type="text" name="sku" class="form-input" placeholder="SKU-001" value="SKU-<?= str_pad((($totalProduk ?? 0) + 1), 3, '0', STR_PAD_LEFT) ?>">
+                                    <input type="text" name="sku" id="sku" class="form-input" placeholder="SKU-001" value="<?= isset($produkEdit) && $produkEdit ? esc($produkEdit['sku']) : 'SKU-' . str_pad((($totalProduk ?? 0) + 1), 3, '0', STR_PAD_LEFT) ?>">
                                 </div>
 
                                 <!-- Weight -->
                                 <div class="form-group">
                                     <label class="form-label">Berat (gram)</label>
-                                    <input type="number" name="berat" class="form-input" placeholder="0" value="0" min="0">
+                                    <input type="number" name="berat" id="berat" class="form-input" placeholder="0" value="<?= isset($produkEdit) && $produkEdit ? $produkEdit['berat'] : '0' ?>" min="0">
                                 </div>
 
                                 <!-- Product Status -->
@@ -1070,25 +1069,37 @@
                                     <label class="form-label">Status Produk</label>
                                     <div class="radio-group">
                                         <div class="radio-option">
-                                            <input type="radio" id="status-aktif" name="status_produk" value="aktif" checked>
+                                            <input type="radio" id="status-aktif" name="status_produk" value="aktif" <?= (isset($produkEdit) && $produkEdit && $produkEdit['status_produk'] == 'aktif') || !isset($produkEdit) ? 'checked' : '' ?>>
                                             <label for="status-aktif">Aktif</label>
                                         </div>
                                         <div class="radio-option">
-                                            <input type="radio" id="status-draft" name="status_produk" value="draft">
+                                            <input type="radio" id="status-draft" name="status_produk" value="draft" <?= isset($produkEdit) && $produkEdit && $produkEdit['status_produk'] == 'draft' ? 'checked' : '' ?>>
                                             <label for="status-draft">Draft</label>
                                         </div>
                                         <div class="radio-option">
-                                            <input type="radio" id="status-tidak-aktif" name="status_produk" value="tidak_aktif">
+                                            <input type="radio" id="status-tidak-aktif" name="status_produk" value="tidak_aktif" <?= isset($produkEdit) && $produkEdit && $produkEdit['status_produk'] == 'tidak_aktif' ? 'checked' : '' ?>>
                                             <label for="status-tidak-aktif">Tidak Aktif</label>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Featured Product -->
+                                <!-- Varian Produk -->
                                 <div class="form-group full-width">
-                                    <div class="checkbox-group">
-                                        <input type="checkbox" id="featured">
-                                        <label for="featured">Produk Unggulan</label>
+                                    <div class="checkbox-group" style="margin-bottom: 16px;">
+                                        <input type="checkbox" id="enableVarian" onchange="toggleVarianSection(this.checked)">
+                                        <label for="enableVarian">Gunakan Varian Produk</label>
+                                    </div>
+                                    
+                                    <div id="varianSection" style="display: none; margin-top: 16px;">
+                                        <div id="varianList">
+                                            <!-- Varian items will be added here dynamically -->
+                                        </div>
+                                        <button type="button" onclick="addVarianRow()" style="display: flex; align-items: center; gap: 8px; margin-top: 12px; padding: 8px 16px; background: #2563EB; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500;">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                            <span>Tambah Varian</span>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -1098,9 +1109,13 @@
                                 <div class="form-actions-left">
                                     <button type="submit" class="btn-submit">
                                         <img src="<?= base_url('assets/img/pluswhite.png') ?>" alt="Plus">
-                                        <span>Tambah Produk</span>
+                                        <span><?= isset($editId) && $editId ? 'Update Produk' : 'Tambah Produk' ?></span>
                                     </button>
-                                    <button type="button" class="btn-cancel">Batal</button>
+                                    <?php if (isset($editId) && $editId): ?>
+                                        <a href="<?= base_url('admin/produk') ?>" class="btn-cancel" style="text-decoration: none; display: inline-flex; align-items: center;">Batal Edit</a>
+                                    <?php else: ?>
+                                        <button type="button" class="btn-cancel" onclick="clearProductForm()">Batal</button>
+                                    <?php endif; ?>
                                 </div>
                                 <button type="button" class="btn-preview" onclick="previewFormProduk()">
                                     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1117,109 +1132,294 @@
         </div>
     </div>
 
+    <!-- Sidebar Toggle Script - Centralized -->
+    <script src="<?= base_url('assets/js/sidebar.js') ?>"></script>
+
     <script>
-        // Sidebar Toggle Functionality
-        const sidebar = document.getElementById('sidebar');
-        const sidebarToggle = document.getElementById('sidebarToggle');
-        const sidebarOverlay = document.getElementById('sidebarOverlay');
-        const dashboardContainer = document.querySelector('.dashboard-container');
+        // ====================================================================
+        // FUNGSI AKSI PRODUK (Edit, Preview, Hapus) - LOAD FIRST
+        // ====================================================================
+        // Pastikan fungsi ini tersedia segera, sebelum DOM ready
+        window.editProduk = function(id) {
+            if (!id) {
+                alert('ID produk tidak valid');
+                return false;
+            }
+            window.location.href = '<?= base_url('admin/produk') ?>?edit=' + id;
+            return false;
+        };
 
-        function isMobile() {
-            return window.innerWidth <= 768;
+        window.hapusProduk = function(id) {
+            if (!id) {
+                alert('ID produk tidak valid');
+                return false;
+            }
+            if (confirm('Apakah Anda yakin ingin menghapus produk ini?')) {
+                window.location.href = '<?= base_url('admin/hapus_produk') ?>/' + id;
+            }
+            return false;
+        };
+
+        window.previewProduk = function(id) {
+            if (!id) {
+                alert('ID produk tidak valid');
+                return false;
+            }
+            window.open('<?= base_url('admin/preview_produk') ?>/' + id, '_blank');
+            return false;
+        };
+    </script>
+    
+    <script>
+
+        // Load menu and data on page load if editing
+        <?php if (isset($produkEdit) && $produkEdit && !empty($produkEdit['id_kategori'])): ?>
+        window.addEventListener('load', function() {
+            const kategoriId = document.getElementById('id_kategori').value;
+            if (kategoriId) {
+                loadMenuByKategori(kategoriId);
+            }
+            
+            // Load promo if exists
+            <?php if (!empty($produkEdit['id_promo'])): ?>
+            const promoSelect = document.getElementById('id_promo');
+            if (promoSelect) {
+                promoSelect.value = <?= $produkEdit['id_promo'] ?>;
+                loadPromoDetail(<?= $produkEdit['id_promo'] ?>);
+            }
+            <?php endif; ?>
+            
+            // Set tipe diskon
+            const tipeDiskon = document.getElementById('tipe_diskon');
+            if (tipeDiskon && '<?= $produkEdit['tipe_diskon'] ?? 'persentase' ?>') {
+                tipeDiskon.value = '<?= $produkEdit['tipe_diskon'] ?? 'persentase' ?>';
+                updateDiskonPrefix();
+                calculateHargaSetelahDiskon();
+            }
+            
+            // Load existing images from JSON gambar_produk
+            <?php if (!empty($produkEdit['fotos'])): ?>
+            const previewContainer = document.getElementById('imagePreview');
+            if (previewContainer) {
+                <?php foreach ($produkEdit['fotos'] as $index => $foto): ?>
+                const existingImg<?= $index ?> = document.createElement('div');
+                existingImg<?= $index ?>.className = 'file-preview-item';
+                existingImg<?= $index ?>.setAttribute('data-existing-image', '<?= $foto['foto_produk'] ?>');
+                existingImg<?= $index ?>.innerHTML = `
+                    <img src="<?= base_url($foto['foto_produk']) ?>" alt="Preview">
+                    <button type="button" class="remove-btn" onclick="removeExistingImage(this, '<?= $foto['foto_produk'] ?>')">×</button>
+                `;
+                previewContainer.appendChild(existingImg<?= $index ?>);
+                <?php endforeach; ?>
+            }
+            <?php endif; ?>
+        });
+        <?php endif; ?>
+
+        // ====================================================================
+        // FILE UPLOAD FUNCTIONALITY - GAMBAR INTI (Urutan 1, hanya 1 gambar)
+        // ====================================================================
+        const uploadAreaInti = document.getElementById('uploadAreaInti');
+        const productImageInti = document.getElementById('productImageInti');
+        const imagePreviewContainerInti = document.getElementById('imagePreviewInti');
+        let selectedFileInti = null;
+
+        // Load existing gambar inti (urutan 1) if in edit mode
+        <?php if (isset($produkEdit) && $produkEdit && !empty($produkEdit['fotos'])): ?>
+        const gambarInti = <?= json_encode(isset($produkEdit['fotos'][0]) ? $produkEdit['fotos'][0] : null) ?>;
+        if (gambarInti && imagePreviewContainerInti) {
+            const existingImgInti = document.createElement('div');
+            existingImgInti.className = 'file-preview-item';
+            existingImgInti.setAttribute('data-existing-image', gambarInti.foto_produk);
+            existingImgInti.innerHTML = `
+                <img src="<?= base_url() ?>${gambarInti.foto_produk}" alt="Gambar Inti">
+                <button type="button" class="remove-btn" onclick="removeExistingImageInti(this, '${gambarInti.foto_produk}')">×</button>
+            `;
+            imagePreviewContainerInti.appendChild(existingImgInti);
+        }
+        <?php endif; ?>
+
+        if (uploadAreaInti && productImageInti) {
+            uploadAreaInti.addEventListener('click', () => {
+                productImageInti.click();
+            });
+
+            uploadAreaInti.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadAreaInti.classList.add('dragover');
+            });
+
+            uploadAreaInti.addEventListener('dragleave', () => {
+                uploadAreaInti.classList.remove('dragover');
+            });
+
+            uploadAreaInti.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadAreaInti.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFileSelectInti(files[0]); // Hanya ambil file pertama
+                }
+            });
+
+            productImageInti.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleFileSelectInti(e.target.files[0]); // Hanya ambil file pertama
+                }
+            });
         }
 
-        // Toggle sidebar
-        function toggleSidebar() {
-            if (isMobile()) {
-                // Mobile: toggle sidebar visibility
-                sidebar.classList.toggle('collapsed');
-                sidebarOverlay.classList.toggle('active');
-            } else {
-                // Desktop: toggle collapsed state (icon-only mode)
-                dashboardContainer.classList.toggle('sidebar-collapsed');
-                sidebar.classList.toggle('collapsed');
+        function handleFileSelectInti(file) {
+            if (!imagePreviewContainerInti || !file || !file.type.startsWith('image/')) return;
+            
+            selectedFileInti = file;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                // Clear existing preview (only 1 image allowed)
+                imagePreviewContainerInti.innerHTML = '';
                 
-                // Save state to localStorage (desktop only)
-                const isCollapsed = dashboardContainer.classList.contains('sidebar-collapsed');
-                localStorage.setItem('sidebarCollapsed', isCollapsed);
+                const previewItem = document.createElement('div');
+                previewItem.className = 'file-preview-item';
+                previewItem.setAttribute('data-filename', file.name);
+                previewItem.setAttribute('data-filesize', file.size);
+                previewItem.innerHTML = `
+                    <img src="${e.target.result}" alt="Gambar Inti">
+                    <button type="button" class="remove-btn" onclick="removePreviewInti(this, '${file.name}', ${file.size})">×</button>
+                `;
+                imagePreviewContainerInti.appendChild(previewItem);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removePreviewInti(btn, filename, filesize) {
+            selectedFileInti = null;
+            if (productImageInti) {
+                productImageInti.value = '';
+            }
+            if (btn && btn.parentElement) {
+                btn.parentElement.remove();
             }
         }
 
-        // Toggle sidebar on button click
-        sidebarToggle.addEventListener('click', toggleSidebar);
-
-        // Close sidebar when overlay is clicked (mobile only)
-        sidebarOverlay.addEventListener('click', () => {
-            if (isMobile()) {
-                sidebar.classList.add('collapsed');
-                sidebarOverlay.classList.remove('active');
-            }
-        });
-
-        // Load saved sidebar state (desktop only)
-        function loadSidebarState() {
-            if (!isMobile()) {
-                const savedState = localStorage.getItem('sidebarCollapsed');
-                if (savedState === 'true') {
-                    dashboardContainer.classList.add('sidebar-collapsed');
-                    sidebar.classList.add('collapsed');
-                } else {
-                    // Desktop: sidebar visible by default
-                    sidebar.classList.remove('collapsed');
-                    dashboardContainer.classList.remove('sidebar-collapsed');
+        function removeExistingImageInti(btn, imagePath) {
+            if (confirm('Apakah Anda yakin ingin menghapus gambar inti ini? Gambar akan dihapus saat produk diupdate.')) {
+                const form = document.getElementById('addProductForm');
+                if (form) {
+                    const deleteInput = document.createElement('input');
+                    deleteInput.type = 'hidden';
+                    deleteInput.name = 'delete_gambar_inti';
+                    deleteInput.value = imagePath;
+                    form.appendChild(deleteInput);
                 }
-            } else {
-                // Mobile: sidebar hidden by default
-                sidebar.classList.add('collapsed');
-                sidebarOverlay.classList.remove('active');
+                if (btn && btn.parentElement) {
+                    btn.parentElement.remove();
+                }
             }
         }
 
-        // Handle window resize
-        window.addEventListener('resize', () => {
-            if (isMobile()) {
-                // Mobile: hide overlay and sidebar if open
-                sidebarOverlay.classList.remove('active');
-                if (!sidebar.classList.contains('collapsed')) {
-                    sidebar.classList.add('collapsed');
+        // ====================================================================
+        // FILE UPLOAD FUNCTIONALITY - GAMBAR PENDUKUNG (Urutan 2, 3, 4, dst)
+        // ====================================================================
+        const uploadAreaPendukung = document.getElementById('uploadAreaPendukung');
+        const productImagePendukung = document.getElementById('productImagePendukung');
+        const imagePreviewContainerPendukung = document.getElementById('imagePreviewPendukung');
+        let selectedFilesPendukung = [];
+
+        // Load existing gambar pendukung (urutan 2+) if in edit mode
+        <?php if (isset($produkEdit) && $produkEdit && !empty($produkEdit['fotos']) && count($produkEdit['fotos']) > 1): ?>
+        const gambarPendukung = <?= json_encode(array_slice($produkEdit['fotos'], 1)) ?>;
+        if (gambarPendukung && imagePreviewContainerPendukung) {
+            gambarPendukung.forEach((foto, idx) => {
+                const existingImg = document.createElement('div');
+                existingImg.className = 'file-preview-item';
+                existingImg.setAttribute('data-existing-image', foto.foto_produk);
+                existingImg.innerHTML = `
+                    <img src="<?= base_url() ?>${foto.foto_produk}" alt="Gambar Pendukung">
+                    <button type="button" class="remove-btn" onclick="removeExistingImagePendukung(this, '${foto.foto_produk}')">×</button>
+                `;
+                imagePreviewContainerPendukung.appendChild(existingImg);
+            });
+        }
+        <?php endif; ?>
+
+        if (uploadAreaPendukung && productImagePendukung) {
+            uploadAreaPendukung.addEventListener('click', () => {
+                productImagePendukung.click();
+            });
+
+            uploadAreaPendukung.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadAreaPendukung.classList.add('dragover');
+            });
+
+            uploadAreaPendukung.addEventListener('dragleave', () => {
+                uploadAreaPendukung.classList.remove('dragover');
+            });
+
+            uploadAreaPendukung.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadAreaPendukung.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFileSelectPendukung(files);
                 }
-                dashboardContainer.classList.remove('sidebar-collapsed');
-            } else {
-                // Desktop: remove overlay, restore saved state
-                sidebarOverlay.classList.remove('active');
-                loadSidebarState();
+            });
+
+            productImagePendukung.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleFileSelectPendukung(e.target.files);
+                }
+            });
+        }
+
+        function handleFileSelectPendukung(files) {
+            if (!imagePreviewContainerPendukung) return;
+            
+            Array.from(files).forEach((file) => {
+                // Check if file already exists (by name and size)
+                const exists = selectedFilesPendukung.some(f => f.name === file.name && f.size === file.size);
+                if (!exists && file.type.startsWith('image/')) {
+                    selectedFilesPendukung.push(file);
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const previewItem = document.createElement('div');
+                        previewItem.className = 'file-preview-item';
+                        previewItem.setAttribute('data-filename', file.name);
+                        previewItem.setAttribute('data-filesize', file.size);
+                        previewItem.innerHTML = `
+                            <img src="${e.target.result}" alt="Gambar Pendukung">
+                            <button type="button" class="remove-btn" onclick="removePreviewPendukung(this, '${file.name}', ${file.size})">×</button>
+                        `;
+                        imagePreviewContainerPendukung.appendChild(previewItem);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        function removePreviewPendukung(btn, filename, filesize) {
+            selectedFilesPendukung = selectedFilesPendukung.filter(f => !(f.name === filename && f.size === filesize));
+            if (btn && btn.parentElement) {
+                btn.parentElement.remove();
             }
-        });
+        }
 
-        // Initialize sidebar state
-        loadSidebarState();
-
-        // File Upload Functionality
-        const uploadArea = document.getElementById('uploadArea');
-        const fileInput = document.getElementById('productImage');
-
-        uploadArea.addEventListener('click', () => {
-            fileInput.click();
-        });
-
-        uploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadArea.classList.add('dragover');
-        });
-
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.classList.remove('dragover');
-        });
-
-        uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadArea.classList.remove('dragover');
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                // Add dropped files to existing selection
-                handleFileSelect(files);
+        function removeExistingImagePendukung(btn, imagePath) {
+            if (confirm('Apakah Anda yakin ingin menghapus gambar pendukung ini? Gambar akan dihapus saat produk diupdate.')) {
+                const form = document.getElementById('addProductForm');
+                if (form) {
+                    const deleteInput = document.createElement('input');
+                    deleteInput.type = 'hidden';
+                    deleteInput.name = 'delete_images_pendukung[]';
+                    deleteInput.value = imagePath;
+                    form.appendChild(deleteInput);
+                }
+                if (btn && btn.parentElement) {
+                    btn.parentElement.remove();
+                }
             }
-        });
+        }
 
         // Calculate harga setelah diskon
         function calculateHargaSetelahDiskon() {
@@ -1240,24 +1440,47 @@
             hargaSetelahDiskonInput.value = hargaSetelahDiskon.toLocaleString('id-ID');
         }
 
-        // Load menu by kategori
+        // Menu data from database (server-side rendered)
+        const menusByKategori = <?= json_encode($menusByKategoriId ?? []) ?>;
+        
+        // Load menu by kategori from pre-loaded data
         function loadMenuByKategori(idKategori) {
             const menuSelect = document.getElementById('id_menu');
+            if (!menuSelect) return;
+            
             menuSelect.innerHTML = '<option value="">Pilih menu</option>';
             
-            if (!idKategori) return;
+            if (!idKategori) {
+                menuSelect.disabled = false;
+                return;
+            }
             
-            fetch('<?= base_url('admin/get_menu_by_kategori') ?>?id_kategori=' + idKategori)
-                .then(response => response.json())
-                .then(data => {
-                    data.forEach(menu => {
+            // Get menus from pre-loaded data
+            const menus = menusByKategori[idKategori] || [];
+            
+            if (menus.length > 0) {
+                menus.forEach(menu => {
                         const option = document.createElement('option');
                         option.value = menu.id_menu;
                         option.textContent = menu.nama_menu;
                         menuSelect.appendChild(option);
                     });
-                })
-                .catch(error => console.error('Error:', error));
+            }
+            
+            menuSelect.disabled = false;
+            
+            // Restore selected menu if in edit mode
+            <?php if (isset($produkEdit) && $produkEdit && isset($produkEdit['id_menu'])): ?>
+            if (menuSelect.value === '' && <?= $produkEdit['id_menu'] ?? 'null' ?>) {
+                const editMenuId = <?= $produkEdit['id_menu'] ?? 'null' ?>;
+                // Wait a bit for options to be added
+                setTimeout(() => {
+                    if (menuSelect.querySelector(`option[value="${editMenuId}"]`)) {
+                        menuSelect.value = editMenuId;
+                    }
+                }, 100);
+            }
+            <?php endif; ?>
         }
 
         // Load promo detail
@@ -1295,41 +1518,254 @@
             calculateHargaSetelahDiskon();
         });
 
-        // Edit produk
-        function editProduk(id) {
-            window.location.href = '<?= base_url('admin/produk') ?>?edit=' + id;
-        }
-
-        // Hapus produk
-        function hapusProduk(id) {
-            if (confirm('Apakah Anda yakin ingin menghapus produk ini?')) {
-                window.location.href = '<?= base_url('admin/hapus_produk') ?>/' + id;
-            }
-        }
-
-        // Preview produk
-        function previewProduk(id) {
-            window.open('<?= base_url('admin/preview_produk') ?>/' + id, '_blank');
-        }
+        // ====================================================================
+        // FUNGSI AKSI PRODUK sudah didefinisikan di atas (sebelum DOMContentLoaded)
+        // ====================================================================
 
         // Preview form produk (untuk produk baru yang belum disimpan)
         function previewFormProduk() {
             alert('Preview akan menampilkan produk setelah disimpan. Silakan simpan produk terlebih dahulu.');
         }
 
-        // Image preview functionality
-        let selectedFiles = [];
+        // Clear form function
+        function clearProductForm() {
+            if (confirm('Apakah Anda yakin ingin membersihkan semua data yang telah diinput? Semua data termasuk gambar yang sudah diupload akan dihapus.')) {
+                // Reset form
+                const form = document.getElementById('addProductForm');
+                if (form) {
+                    form.reset();
+                }
+                
+                // Clear image previews
+                const imagePreviewInti = document.getElementById('imagePreviewInti');
+                const imagePreviewPendukung = document.getElementById('imagePreviewPendukung');
+                if (imagePreviewInti) {
+                    imagePreviewInti.innerHTML = '';
+                }
+                if (imagePreviewPendukung) {
+                    imagePreviewPendukung.innerHTML = '';
+                }
+                
+                // Clear selected files
+                if (typeof selectedFilesInti !== 'undefined') {
+                    selectedFilesInti = [];
+                }
+                if (typeof selectedFilesPendukung !== 'undefined') {
+                    selectedFilesPendukung = [];
+                }
+                
+                // Clear varian section
+                const varianSection = document.getElementById('varianSection');
+                if (varianSection) {
+                    varianSection.style.display = 'none';
+                }
+                const enableVarian = document.getElementById('enableVarian');
+                if (enableVarian) {
+                    enableVarian.checked = false;
+                }
+                const varianList = document.getElementById('varianList');
+                if (varianList) {
+                    varianList.innerHTML = '';
+                }
+                if (typeof varianCounter !== 'undefined') {
+                    varianCounter = 0;
+                }
+                
+                // Clear localStorage for image previews
+                try {
+                    localStorage.removeItem('productImagePreviewInti');
+                    localStorage.removeItem('productImagePreviewPendukung');
+                } catch (e) {
+                    console.log('Error clearing localStorage:', e);
+                }
+                
+                // Reset file inputs
+                const fileInputInti = document.getElementById('productImageInti');
+                const fileInputPendukung = document.getElementById('productImagePendukung');
+                if (fileInputInti) {
+                    fileInputInti.value = '';
+                }
+                if (fileInputPendukung) {
+                    fileInputPendukung.value = '';
+                }
+            }
+        }
 
-        function handleFileSelect(files) {
-            const previewContainer = document.getElementById('imagePreview');
+        // Varian Produk Functions - Fixed
+        let varianCounter = 0;
+
+        function toggleVarianSection(enable) {
+            const varianSection = document.getElementById('varianSection');
+            if (!varianSection) {
+                console.error('Varian section not found');
+                return;
+            }
             
-            // Add new files to selectedFiles array
-            Array.from(files).forEach((file) => {
-                // Check if file already exists (by name and size)
-                const exists = selectedFiles.some(f => f.name === file.name && f.size === file.size);
-                if (!exists && file.type.startsWith('image/')) {
-                    selectedFiles.push(file);
+            if (enable) {
+                varianSection.style.display = 'block';
+                varianSection.style.visibility = 'visible';
+                if (varianCounter === 0) {
+                    addVarianRow();
+                }
+            } else {
+                varianSection.style.display = 'none';
+                varianSection.style.visibility = 'hidden';
+                const varianList = document.getElementById('varianList');
+                if (varianList) {
+                    varianList.innerHTML = '';
+                }
+                varianCounter = 0;
+            }
+        }
+
+        // Ensure checkbox works properly
+        document.addEventListener('DOMContentLoaded', function() {
+            const enableCheckbox = document.getElementById('enableVarian');
+            if (enableCheckbox) {
+                // Add event listener as backup
+                enableCheckbox.addEventListener('change', function() {
+                    toggleVarianSection(this.checked);
+                });
+                
+                // Check if editing and has varian data
+                <?php if (isset($produkEdit) && !empty($produkEdit['varian'])): ?>
+                    enableCheckbox.checked = true;
+                    toggleVarianSection(true);
+                <?php endif; ?>
+            }
+        });
+
+        function addVarianRow(varianData = null) {
+            varianCounter++;
+            const varianList = document.getElementById('varianList');
+            const varianItem = document.createElement('div');
+            varianItem.className = 'varian-item';
+            varianItem.setAttribute('data-varian-index', varianCounter);
+            varianItem.style.cssText = 'margin-bottom: 16px; padding: 16px; background: #F9FAFB; border-radius: 8px;';
+            
+            const varianId = varianData ? varianData.id_varian : '';
+            
+            varianItem.innerHTML = `
+                <div style="display: grid; grid-template-columns: 2fr 2fr 1fr 1fr auto; gap: 12px; align-items: end; margin-bottom: 12px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 500; color: #374151;">Nama Varian</label>
+                        <input type="text" name="varian[${varianCounter}][nama_varian]" class="form-input" placeholder="Contoh: Warna, Ukuran" value="${varianData ? (varianData.nama_varian || '') : ''}" required>
+                        ${varianId ? `<input type="hidden" name="varian[${varianCounter}][id_varian]" value="${varianId}">` : ''}
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 500; color: #374151;">Nilai Varian</label>
+                        <input type="text" name="varian[${varianCounter}][nilai_varian]" class="form-input" placeholder="Contoh: Merah, XL" value="${varianData ? (varianData.nilai_varian || '') : ''}" required>
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 500; color: #374151;">Harga Tambahan</label>
+                        <input type="number" name="varian[${varianCounter}][harga_tambahan]" class="form-input" placeholder="0" value="${varianData ? (varianData.harga_tambahan || 0) : 0}" min="0">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 500; color: #374151;">Stok</label>
+                        <input type="number" name="varian[${varianCounter}][stok_varian]" class="form-input" placeholder="0" value="${varianData ? (varianData.stok_varian || 0) : 0}" min="0">
+                    </div>
+                    <button type="button" onclick="removeVarianRow(this)" style="width: 40px; height: 40px; border: 1px solid #DC2626; background: white; color: #DC2626; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px;" title="Hapus Varian">×</button>
+                </div>
+                <div style="margin-top: 12px;">
+                    <div style="margin-bottom: 8px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="checkbox" class="varian-gambar-checkbox" data-varian-index="${varianCounter}" onchange="toggleVarianGambarUpload(${varianCounter}, this.checked)">
+                            <span style="font-size: 14px; font-weight: 500; color: #374151;">Tambah gambar varian</span>
+                        </label>
+                    </div>
+                    <div id="varianGambarUpload${varianCounter}" style="display: none;">
+                        <div class="upload-area varian-upload-area" id="uploadAreaVarian${varianCounter}" style="padding: 24px;">
+                            <svg class="upload-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 40px; height: 40px;">
+                                <path d="M7 18C4.23858 18 2 15.7614 2 13C2 10.2386 4.23858 8 7 8C7.35138 8 7.68838 8.03357 8.01116 8.09569C8.54744 6.13037 10.3453 4.75 12.5 4.75C15.1234 4.75 17.25 6.87665 17.25 9.5C17.25 9.77614 17.2239 10.0458 17.1746 10.3069C18.4659 10.9846 19.25 12.3515 19.25 13.875C19.25 16.1868 17.4368 18 15.125 18H7Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M12 8V16M8 12H16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                            <p class="upload-text" style="font-size: 13px; margin: 8px 0 4px;">Klik untuk upload gambar varian</p>
+                            <p class="upload-hint" style="font-size: 11px;">PNG, JPG, GIF hingga 10MB</p>
+                            <input type="file" id="varianImage${varianCounter}" name="varian[${varianCounter}][gambar_varian][]" accept="image/*" style="display: none;" multiple>
+                            <div id="varianImagePreview${varianCounter}" class="image-preview-container" style="margin-top: 12px;"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            varianList.appendChild(varianItem);
+            
+            // Initialize upload area for this varian
+            initVarianUploadArea(varianCounter, varianData);
+        }
+
+        function toggleVarianGambarUpload(varianIndex, checked) {
+            const uploadContainer = document.getElementById('varianGambarUpload' + varianIndex);
+            if (uploadContainer) {
+                uploadContainer.style.display = checked ? 'block' : 'none';
+            }
+        }
+
+        function initVarianUploadArea(varianIndex, varianData = null) {
+            const uploadArea = document.getElementById('uploadAreaVarian' + varianIndex);
+            const fileInput = document.getElementById('varianImage' + varianIndex);
+            const previewContainer = document.getElementById('varianImagePreview' + varianIndex);
+
+            if (!uploadArea || !fileInput || !previewContainer) return;
+
+            // Load existing images if editing
+            if (varianData && varianData.gambar_varian) {
+                try {
+                    const existingImages = typeof varianData.gambar_varian === 'string' 
+                        ? JSON.parse(varianData.gambar_varian) 
+                        : varianData.gambar_varian;
                     
+                    if (Array.isArray(existingImages)) {
+                        existingImages.forEach((imgPath, idx) => {
+                            const previewItem = document.createElement('div');
+                            previewItem.className = 'file-preview-item';
+                            previewItem.setAttribute('data-existing-image', imgPath);
+                            previewItem.innerHTML = `
+                                <img src="<?= base_url() ?>${imgPath}" alt="Varian Preview">
+                                <button type="button" class="remove-btn" onclick="removeVarianImage(this, '${imgPath}', ${varianIndex})">×</button>
+                            `;
+                            previewContainer.appendChild(previewItem);
+                        });
+                    }
+                } catch (e) {
+                    console.error('Error loading varian images:', e);
+                }
+            }
+
+            // Click handler
+            uploadArea.addEventListener('click', () => {
+                fileInput.click();
+            });
+
+            // Drag and drop
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleVarianFileSelect(files, varianIndex, previewContainer);
+                }
+            });
+
+            // File change handler
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleVarianFileSelect(e.target.files, varianIndex, previewContainer);
+                }
+            });
+        }
+
+        function handleVarianFileSelect(files, varianIndex, previewContainer) {
+            Array.from(files).forEach((file) => {
+                if (file.type.startsWith('image/')) {
                     const reader = new FileReader();
                     reader.onload = function(e) {
                         const previewItem = document.createElement('div');
@@ -1337,49 +1773,55 @@
                         previewItem.setAttribute('data-filename', file.name);
                         previewItem.setAttribute('data-filesize', file.size);
                         previewItem.innerHTML = `
-                            <img src="${e.target.result}" alt="Preview">
-                            <button type="button" class="remove-btn" onclick="removePreview(this, '${file.name}', ${file.size})">×</button>
+                            <img src="${e.target.result}" alt="Varian Preview">
+                            <button type="button" class="remove-btn" onclick="removeVarianPreview(this, '${file.name}', ${file.size}, ${varianIndex})">×</button>
                         `;
                         previewContainer.appendChild(previewItem);
                     };
                     reader.readAsDataURL(file);
                 }
             });
-            
-            // Update file input with selectedFiles
-            updateFileInput();
         }
 
-        function updateFileInput() {
-            const dataTransfer = new DataTransfer();
-            selectedFiles.forEach(file => {
-                dataTransfer.items.add(file);
-            });
-            fileInput.files = dataTransfer.files;
-        }
-
-        function removePreview(btn, filename, filesize) {
-            // Remove from selectedFiles array
-            selectedFiles = selectedFiles.filter(f => !(f.name === filename && f.size === filesize));
-            
-            // Remove preview element
+        function removeVarianPreview(btn, filename, filesize, varianIndex) {
+            if (btn && btn.parentElement) {
             btn.parentElement.remove();
-            
-            // Update file input
-            updateFileInput();
+            }
         }
 
-        // File input change handler (only one needed)
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                handleFileSelect(e.target.files);
+        function removeVarianImage(btn, imagePath, varianIndex) {
+            if (confirm('Apakah Anda yakin ingin menghapus gambar varian ini?')) {
+                // Add hidden input to mark for deletion
+                const form = document.getElementById('addProductForm');
+                if (form) {
+                    const deleteInput = document.createElement('input');
+                    deleteInput.type = 'hidden';
+                    deleteInput.name = `varian[${varianIndex}][delete_images][]`;
+                    deleteInput.value = imagePath;
+                    form.appendChild(deleteInput);
+                }
+                
+                if (btn && btn.parentElement) {
+                    btn.parentElement.remove();
+                }
             }
-        });
+        }
 
-        // Form submission
-        document.getElementById('addProductForm').addEventListener('submit', function(e) {
-            // Form akan submit normal ke server
-        });
+        function removeVarianRow(btn) {
+            btn.parentElement.remove();
+        }
+
+        <?php if (isset($editId) && $editId && isset($produkEdit)): ?>
+        // Load existing varian if in edit mode
+        const produkVarian = <?= json_encode(isset($produkEdit['varian']) ? $produkEdit['varian'] : []) ?>;
+        if (produkVarian && produkVarian.length > 0) {
+            document.getElementById('enableVarian').checked = true;
+            toggleVarianSection(true);
+            produkVarian.forEach(varian => {
+                addVarianRow(varian);
+            });
+        }
+        <?php endif; ?>
     </script>
 </body>
 

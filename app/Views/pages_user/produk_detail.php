@@ -76,7 +76,28 @@ body {
 .product-thumbnails {
     display: flex;
     gap: 12px;
-    flex-wrap: wrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 8px 0;
+    scrollbar-width: thin;
+    scrollbar-color: #CBD5E1 transparent;
+}
+
+.product-thumbnails::-webkit-scrollbar {
+    height: 6px;
+}
+
+.product-thumbnails::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.product-thumbnails::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 3px;
+}
+
+.product-thumbnails::-webkit-scrollbar-thumb:hover {
+    background: #94A3B8;
 }
 
 .product-thumbnail {
@@ -325,7 +346,7 @@ body {
                 <div class="product-images">
                     <?php if (!empty($fotos)): ?>
                         <img src="<?= base_url($fotos[0]['foto_produk']) ?>" alt="<?= esc($produk['nama_produk']) ?>" class="product-main-image" id="mainImage" />
-                        <div class="product-thumbnails">
+                        <div class="product-thumbnails" id="thumbnailContainer">
                             <?php foreach ($fotos as $index => $foto): ?>
                                 <img src="<?= base_url($foto['foto_produk']) ?>" alt="Thumbnail <?= $index + 1 ?>" 
                                      class="product-thumbnail <?= $index === 0 ? 'active' : '' ?>" 
@@ -333,7 +354,8 @@ body {
                             <?php endforeach; ?>
                         </div>
                     <?php else: ?>
-                        <img src="<?= base_url('assets/img/product-placeholder.png') ?>" alt="<?= esc($produk['nama_produk']) ?>" class="product-main-image" />
+                        <img src="<?= base_url('assets/img/product-placeholder.png') ?>" alt="<?= esc($produk['nama_produk']) ?>" class="product-main-image" id="mainImage" />
+                        <div class="product-thumbnails" id="thumbnailContainer"></div>
                     <?php endif; ?>
                     
                     <?php if (!empty($toko)): ?>
@@ -379,6 +401,30 @@ body {
                         <?php endif; ?>
                     </div>
 
+                    <!-- Varian Produk (jika ada varian dengan gambar) -->
+                    <?php 
+                    $varianDenganGambar = array_filter($varianList ?? [], function($v) {
+                        return !empty($v['gambar_varian']) && is_array($v['gambar_varian']) && count($v['gambar_varian']) > 0;
+                    });
+                    ?>
+                    <?php if (!empty($varianDenganGambar)): ?>
+                        <div class="variant-section" style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #E5E7EB;">
+                            <h3 style="font-size: 16px; font-weight: 600; color: #1F2937; margin-bottom: 12px;">Pilih Varian</h3>
+                            <div class="variant-options" style="display: flex; flex-wrap: wrap; gap: 12px;">
+                                <?php foreach ($varianDenganGambar as $index => $varian): ?>
+                                    <button type="button" 
+                                            class="variant-option" 
+                                            data-varian-id="<?= $varian['id_varian'] ?>"
+                                            data-start-index="<?= $varianImageIndices[$varian['id_varian']] ?? 0 ?>"
+                                            onclick="selectVariant(<?= $varian['id_varian'] ?>, <?= $varianImageIndices[$varian['id_varian']] ?? 0 ?>, this)"
+                                            style="padding: 10px 16px; border: 2px solid #D1D5DB; background: white; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; color: #374151; transition: all 0.2s;">
+                                        <?= esc($varian['nama_varian']) ?>: <?= esc($varian['nilai_varian']) ?>
+                                    </button>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
                     <?php if (!empty($produk['deskripsi_produk'])): ?>
                         <div class="description-section">
                             <h2 class="description-title">Deskripsi Produk</h2>
@@ -406,10 +452,45 @@ body {
     </main>
 
     <script>
+        // All images are already displayed in thumbnail list (inti + pendukung + varian)
         function changeMainImage(src, element) {
-            document.getElementById('mainImage').src = src;
+            const mainImage = document.getElementById('mainImage');
+            if (mainImage) {
+                mainImage.src = src;
+            }
             document.querySelectorAll('.product-thumbnail').forEach(img => img.classList.remove('active'));
-            element.classList.add('active');
+            if (element) {
+                element.classList.add('active');
+                // Scroll thumbnail into view if needed
+                element.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            }
+        }
+        
+        function selectVariant(varianId, startIndex, buttonElement) {
+            // Remove active class from all variant buttons
+            document.querySelectorAll('.variant-option').forEach(btn => {
+                btn.classList.remove('active');
+                btn.style.borderColor = '#D1D5DB';
+                btn.style.background = 'white';
+                btn.style.color = '#374151';
+            });
+            
+            // Add active class to selected button
+            buttonElement.classList.add('active');
+            buttonElement.style.borderColor = '#2563EB';
+            buttonElement.style.background = '#EFF6FF';
+            buttonElement.style.color = '#2563EB';
+            
+            // Get all thumbnails (semua gambar sudah ada di list)
+            const thumbnails = document.querySelectorAll('.product-thumbnail');
+            if (thumbnails.length > startIndex) {
+                // Jump to the first image of this variant (gambar sudah ada di list)
+                const targetThumbnail = thumbnails[startIndex];
+                if (targetThumbnail) {
+                    const imageSrc = targetThumbnail.src;
+                    changeMainImage(imageSrc, targetThumbnail);
+                }
+            }
         }
     </script>
 </body>

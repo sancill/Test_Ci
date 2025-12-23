@@ -34,11 +34,14 @@
             color: #6B7280;
         }
 
+        .profile-banner-wrapper {
+            position: relative;
+            margin: 32px;
+        }
+
         .profile-banner-section {
-            background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 50%, #1E40AF 100%);
             position: relative;
             height: 256px;
-            margin: 32px;
             border-radius: 16px;
             overflow: hidden;
             box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.05);
@@ -51,7 +54,26 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            opacity: 0.3;
+            z-index: 1;
+        }
+
+        .banner-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.3);
+            z-index: 2;
+        }
+
+        .profile-transparent-rectangle {
+            position: relative;
+            width: 100%;
+            height: 120px;
+            background: rgba(255, 255, 255, 0.5);
+            margin-top: -1px;
+            z-index: 3;
         }
 
         .change-banner-btn {
@@ -85,10 +107,11 @@
         .profile-picture-container {
             position: absolute;
             left: 50%;
-            bottom: -80px;
-            transform: translateX(-50%);
+            top: 256px;
+            transform: translateX(-50%) translateY(-50%);
             width: 160px;
             height: 160px;
+            z-index: 100;
         }
 
         .profile-picture {
@@ -99,6 +122,9 @@
             object-fit: cover;
             box-shadow: 0px 8px 10px rgba(0, 0, 0, 0.1);
             background: #FFFFFF;
+            position: relative;
+            z-index: 100;
+            display: block;
         }
 
         .edit-profile-pic-btn {
@@ -116,6 +142,7 @@
             cursor: pointer;
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
             transition: background 0.2s;
+            z-index: 101;
         }
 
         .edit-profile-pic-btn:hover {
@@ -129,9 +156,11 @@
         }
 
         .store-info-section {
-            margin-top: 120px;
+            margin-top: 0;
             text-align: center;
             padding: 0 32px;
+            position: relative;
+            z-index: 1;
         }
 
         .store-name {
@@ -487,6 +516,23 @@
             color: #1F2937;
         }
 
+        .btn-logout {
+            width: 100%;
+            padding: 12px;
+            background: #FEE2E2;
+            color: #991B1B;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-logout:hover {
+            background: #FECACA;
+        }
+
         .status-badge {
             display: inline-flex;
             align-items: center;
@@ -520,15 +566,22 @@
                 padding: 16px;
             }
 
-            .profile-banner-section {
+            .profile-banner-wrapper {
                 margin: 16px;
+            }
+
+            .profile-banner-section {
                 height: 200px;
+            }
+
+            .profile-transparent-rectangle {
+                height: 60px;
             }
 
             .profile-picture-container {
                 width: 120px;
                 height: 120px;
-                bottom: -60px;
+                top: 200px;
             }
 
             .profile-picture {
@@ -538,7 +591,7 @@
             }
 
             .store-info-section {
-                margin-top: 80px;
+                margin-top: 60px;
                 padding: 0 16px;
             }
 
@@ -618,21 +671,25 @@
                     </div>
 
                     <!-- Banner & Profile Picture Section -->
-                    <div class="profile-banner-section">
-                        <?php if (!empty($toko['banner_toko'])): ?>
-                            <img src="<?= base_url($toko['banner_toko']) ?>" alt="Banner" class="banner-background">
-                        <?php endif; ?>
-                        <button class="change-banner-btn" onclick="window.location.href='<?= base_url('admin/setting_toko') ?>'">
-                            <img src="<?= base_url('assets/img/icon-edit.png') ?>" alt="Edit">
-                            <span>Ubah Banner</span>
-                        </button>
+                    <div class="profile-banner-wrapper">
+                        <div class="profile-banner-section">
+                            <?php if (!empty($toko['banner_toko'])): ?>
+                                <img src="<?= base_url($toko['banner_toko']) ?>" alt="Banner" class="banner-background">
+                            <?php endif; ?>
+                            <div class="banner-overlay"></div>
+                            <button class="change-banner-btn" onclick="window.location.href='<?= base_url('admin/setting_toko') ?>'" style="position: relative; z-index: 5;">
+                                <img src="<?= base_url('assets/img/icon-edit.png') ?>" alt="Edit">
+                                <span>Ubah Banner</span>
+                            </button>
+                        </div>
+                        <div class="profile-transparent-rectangle"></div>
                         <div class="profile-picture-container">
                             <?php if (!empty($toko['logo_toko'])): ?>
                                 <img src="<?= base_url($toko['logo_toko']) ?>" alt="Logo Toko" class="profile-picture">
                             <?php else: ?>
                                 <img src="<?= base_url('assets/img/admin-avatar.png') ?>" alt="Logo Toko" class="profile-picture">
                             <?php endif; ?>
-                            <button class="edit-profile-pic-btn" onclick="window.location.href='<?= base_url('admin/setting_toko') ?>'">
+                            <button class="edit-profile-pic-btn" onclick="window.location.href='<?= base_url('admin/setting_toko') ?>'" style="z-index: 101;">
                                 <img src="<?= base_url('assets/img/icon-edit.png') ?>" alt="Edit">
                             </button>
                         </div>
@@ -846,16 +903,21 @@
                                 <div class="account-info-list">
                                     <div class="account-info-item">
                                         <span class="account-info-label">Bergabung Sejak</span>
-                                        <span class="account-info-value"><?= !empty($toko['tanggal_bergabung']) ? date('d M Y', strtotime($toko['tanggal_bergabung'])) : '15 Jan 2022' ?></span>
+                                        <span class="account-info-value"><?= !empty($toko['tanggal_bergabung']) ? date('d M Y', strtotime($toko['tanggal_bergabung'])) : (!empty($toko['created_at']) ? date('d M Y', strtotime($toko['created_at'])) : '-') ?></span>
                                     </div>
                                     <div class="account-info-item">
                                         <span class="account-info-label">Login Terakhir</span>
-                                        <span class="account-info-value"><?= !empty($toko['login_terakhir']) ? date('H:i', strtotime($toko['login_terakhir'])) : 'Hari ini, 14:30' ?></span>
+                                        <span class="account-info-value"><?= !empty($toko['login_terakhir']) ? date('d M Y, H:i', strtotime($toko['login_terakhir'])) : (!empty($toko['updated_at']) ? date('d M Y, H:i', strtotime($toko['updated_at'])) : '-') ?></span>
                                     </div>
                                     <div class="account-info-item">
                                         <span class="account-info-label">Status Akun</span>
                                         <span class="status-badge active"><?= esc($toko['status_akun'] ?? 'aktif') === 'aktif' ? 'Aktif' : 'Nonaktif' ?></span>
                                     </div>
+                                </div>
+                                <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #F3F4F6;">
+                                    <button class="btn-logout" style="width: 100%; padding: 12px; background: #FEE2E2; color: #991B1B; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; transition: background 0.2s;">
+                                        Logout
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -865,68 +927,10 @@
         </div>
     </div>
 
+    <!-- Sidebar Toggle Script - Centralized -->
+    <script src="<?= base_url('assets/js/sidebar.js') ?>"></script>
+    
     <script>
-        // Sidebar Toggle Functionality
-        const sidebar = document.getElementById('sidebar');
-        const sidebarToggle = document.getElementById('sidebarToggle');
-        const sidebarOverlay = document.getElementById('sidebarOverlay');
-        const dashboardContainer = document.querySelector('.dashboard-container');
-
-        function isMobile() {
-            return window.innerWidth <= 768;
-        }
-
-        function toggleSidebar() {
-            if (isMobile()) {
-                sidebar.classList.toggle('collapsed');
-                sidebarOverlay.classList.toggle('active');
-            } else {
-                dashboardContainer.classList.toggle('sidebar-collapsed');
-                sidebar.classList.toggle('collapsed');
-                const isCollapsed = dashboardContainer.classList.contains('sidebar-collapsed');
-                localStorage.setItem('sidebarCollapsed', isCollapsed);
-            }
-        }
-
-        sidebarToggle.addEventListener('click', toggleSidebar);
-        sidebarOverlay.addEventListener('click', () => {
-            if (isMobile()) {
-                sidebar.classList.add('collapsed');
-                sidebarOverlay.classList.remove('active');
-            }
-        });
-
-        function loadSidebarState() {
-            if (!isMobile()) {
-                const savedState = localStorage.getItem('sidebarCollapsed');
-                if (savedState === 'true') {
-                    dashboardContainer.classList.add('sidebar-collapsed');
-                    sidebar.classList.add('collapsed');
-                } else {
-                    sidebar.classList.remove('collapsed');
-                    dashboardContainer.classList.remove('sidebar-collapsed');
-                }
-            } else {
-                sidebar.classList.add('collapsed');
-                sidebarOverlay.classList.remove('active');
-            }
-        }
-
-        window.addEventListener('resize', () => {
-            if (isMobile()) {
-                sidebarOverlay.classList.remove('active');
-                if (!sidebar.classList.contains('collapsed')) {
-                    sidebar.classList.add('collapsed');
-                }
-                dashboardContainer.classList.remove('sidebar-collapsed');
-            } else {
-                sidebarOverlay.classList.remove('active');
-                loadSidebarState();
-            }
-        });
-
-        loadSidebarState();
-    </script>
 </body>
 
 </html>
