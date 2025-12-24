@@ -105,6 +105,27 @@ class PesananModel extends Model
         }
     }
 
+    // Get orders by user ID
+    public function getPesananByUserId($userId, $limit = null)
+    {
+        try {
+            $builder = $this->db->table($this->table . ' p');
+            $builder->select('p.*, u.nama_user as nama_pelanggan, u.email as email_pelanggan, 
+                             u.no_telepon as telepon_pelanggan, a.alamat_lengkap, a.nama_penerima');
+            $builder->join('user u', 'u.id_user = p.id_user', 'left');
+            $builder->join('alamat_user a', 'a.id_alamat = p.id_alamat', 'left');
+            $builder->where('p.id_user', $userId);
+            $builder->orderBy('p.tanggal_pesan', 'DESC');
+            if ($limit) {
+                $builder->limit($limit);
+            }
+            return $builder->get()->getResultArray();
+        } catch (\Exception $e) {
+            log_message('error', 'Error in getPesananByUserId: ' . $e->getMessage());
+            return [];
+        }
+    }
+
     // Generate nomor pesanan
     public function generateNoPesanan()
     {

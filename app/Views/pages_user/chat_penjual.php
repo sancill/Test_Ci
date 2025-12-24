@@ -1,11 +1,19 @@
+<?php
+    $toko = $toko ?? [];
+    $namaToko = $toko['nama_toko'] ?? 'Nama Toko';
+    $deskripsiToko = $toko['deskripsi_toko'] ?? 'Deskripsi penjual atau toko disini';
+    $fotoToko = !empty($toko['logo_toko']) ? base_url($toko['logo_toko']) : base_url('assets/img/logo.png');
+    $bank = $toko['nama_admin'] ?? 'Admin';
+?>
+
 <div style="max-width: 1280px; margin: 0 auto; padding: 40px 20px;">
     <div style="background: white; padding: 32px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
         <div style="display: flex; gap: 24px; margin-bottom: 32px; align-items: center;">
-            <img src="assets/img/logo.png" alt="Foto Penjual"
+            <img src="<?= $fotoToko ?>" alt="Foto Penjual"
                 style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;">
             <div>
-                <h1 style="margin-bottom: 8px;">Nama Penjual</h1>
-                <p style="color: #6b7280;">Deskripsi penjual atau toko disini</p>
+                <h1 style="margin-bottom: 8px;"><?= esc($namaToko) ?></h1>
+                <p style="color: #6b7280;"><?= esc($deskripsiToko) ?></p>
             </div>
         </div>
 
@@ -18,7 +26,8 @@
                     berikut:
                 </p>
                 <div style="background: white; padding: 16px; border-radius: 8px;">
-                    <p><strong>Bank Akun:</strong> BCA - 1234567890</p>
+                    <p><strong>Kontak:</strong> <?= esc($toko['whatsapp_cs'] ?? $toko['telepon_admin'] ?? '-') ?></p>
+                    <p><strong>CS Email:</strong> <?= esc($toko['email_cs'] ?? $toko['email_admin'] ?? '-') ?></p>
                 </div>
             </div>
 

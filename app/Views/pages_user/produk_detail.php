@@ -269,6 +269,8 @@ body {
     line-height: 24px;
     color: #475467;
     margin-bottom: 24px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
 }
 
 .description-subtitle {
@@ -330,11 +332,13 @@ body {
 <body>
     <nav class="breadcrumbs">
         <a href="<?= base_url() ?>">Beranda</a>
-        <img src="<?= base_url('assets/img/iconpanah.png') ?>" alt=">" />
-        <a href="#"><?= esc($produk['nama_kategori'] ?? 'Kategori') ?></a>
-        <?php if (!empty($produk['nama_menu'])): ?>
+        <?php if (!empty($produk['id_kategori']) && !empty($produk['nama_kategori'])): ?>
             <img src="<?= base_url('assets/img/iconpanah.png') ?>" alt=">" />
-            <a href="#"><?= esc($produk['nama_menu']) ?></a>
+            <a href="<?= base_url('kategori?kategori=' . urlencode($produk['id_kategori'])) ?>"><?= esc($produk['nama_kategori']) ?></a>
+        <?php endif; ?>
+        <?php if (!empty($produk['id_menu']) && !empty($produk['nama_menu'])): ?>
+            <img src="<?= base_url('assets/img/iconpanah.png') ?>" alt=">" />
+            <a href="<?= base_url('kategori?kategori=' . urlencode($produk['id_kategori']) . '&menu=' . urlencode($produk['id_menu'])) ?>"><?= esc($produk['nama_menu']) ?></a>
         <?php endif; ?>
         <img src="<?= base_url('assets/img/iconpanah.png') ?>" alt=">" />
         <span class="current">Detail Produk</span>
@@ -428,7 +432,7 @@ body {
                     <?php if (!empty($produk['deskripsi_produk'])): ?>
                         <div class="description-section">
                             <h2 class="description-title">Deskripsi Produk</h2>
-                            <p class="description-text"><?= nl2br(esc($produk['deskripsi_produk'])) ?></p>
+                            <div class="description-text"><?= nl2br(esc($produk['deskripsi_produk'])) ?></div>
                             
                             <?php if (!empty($produk['merek'])): ?>
                                 <h3 class="description-subtitle">Merek:</h3>

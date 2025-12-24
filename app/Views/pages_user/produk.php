@@ -151,7 +151,24 @@ body {
 
 .product-thumbnails {
     display: flex;
-    gap: 12px;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+}
+
+.product-thumbnails::-webkit-scrollbar {
+    height: 6px;
+}
+
+.product-thumbnails::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.product-thumbnails::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 999px;
 }
 
 .product-thumbnail {
@@ -163,6 +180,7 @@ body {
     cursor: pointer;
     border: 2px solid transparent;
     transition: border-color 0.2s;
+    flex-shrink: 0;
 }
 
 .product-thumbnail.active {
@@ -171,6 +189,14 @@ body {
 
 .product-thumbnail:hover {
     border-color: #3b82f6;
+}
+
+/* Hide real reviews when none exist */
+.review-item {
+    display: none;
+}
+.reviews-link {
+    display: none;
 }
 
 .seller-info {
@@ -287,9 +313,14 @@ body {
     gap: 4px;
 }
 
-.rating-stars img {
-    width: 18px;
-    height: 18px;
+.rating-star {
+    font-size: 18px;
+    color: #e5e7eb;
+    line-height: 1;
+}
+
+.rating-star.filled {
+    color: #f59e0b;
 }
 
 .rating-value {
@@ -631,10 +662,12 @@ body {
 
 .description-text {
     font-size: 16px;
-    font-weight: 700;
-    color: #374155;
+    font-weight: 400;
+    color: #475467;
     line-height: 24px;
     margin-bottom: 24px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
 }
 
 .description-subtitle {
@@ -970,12 +1003,47 @@ body {
     </head>
 
     <body>
+        <?php
+            $produk = $produk ?? null;
+            $toko = $toko ?? [];
+            $fotos = $fotos ?? [];
+            if (empty($fotos) && $produk && !empty($produk['gambar_produk'])) {
+                $decoded = json_decode($produk['gambar_produk'], true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    $fotos = array_map(fn($p) => ['foto_produk' => $p], $decoded);
+                } else {
+                    $fotos = [['foto_produk' => $produk['gambar_produk']]];
+                }
+            }
+            $mainImg = !empty($fotos) ? $fotos[0]['foto_produk'] : 'assets/img/product-laptop.png';
+            $hargaTampil = ($produk['harga_setelah_diskon'] ?? 0) > 0 ? $produk['harga_setelah_diskon'] : ($produk['harga_awal'] ?? 0);
+            $hargaAwal = $produk['harga_awal'] ?? 0;
+            $kategoriNama = $produk['nama_kategori'] ?? 'Kategori';
+            $kategoriId = $produk['id_kategori'] ?? null;
+            $menuNama = $produk['nama_menu'] ?? null;
+            $menuId = $produk['id_menu'] ?? null;
+            // Siapkan gambar varian per tombol
+            $variantImagesMap = [];
+            if (!empty($varianList)) {
+                foreach ($varianList as $v) {
+                    $imgs = [];
+                    if (!empty($v['gambar_varian']) && is_array($v['gambar_varian'])) {
+                        $imgs = $v['gambar_varian'];
+                    }
+                    $variantImagesMap[] = $imgs;
+                }
+            }
+        ?>
         <nav class="breadcrumbs">
-            <a href="#">Beranda</a>
-            <img src="/assets/img/iconpanah.png" alt=">" />
-            <a href="#">Elektronik</a>
-            <img src="/assets/img/iconpanah.png" alt=">" />
-            <a href="#">Laptop</a>
+            <a href="<?= base_url() ?>">Beranda</a>
+            <?php if ($kategoriId && $kategoriNama): ?>
+                <img src="/assets/img/iconpanah.png" alt=">" />
+                <a href="<?= base_url('kategori?kategori=' . urlencode($kategoriId)) ?>"><?= esc($kategoriNama) ?></a>
+            <?php endif; ?>
+            <?php if ($menuId && $menuNama): ?>
+                <img src="/assets/img/iconpanah.png" alt=">" />
+                <a href="<?= base_url('kategori?kategori=' . urlencode($kategoriId) . '&menu=' . urlencode($menuId)) ?>"><?= esc($menuNama) ?></a>
+            <?php endif; ?>
             <img src="/assets/img/iconpanah.png" alt=">" />
             <span class="current">Detail Produk</span>
         </nav>
@@ -984,26 +1052,23 @@ body {
             <div class="product-container">
                 <div class="product-content">
                     <div class="product-images">
-                        <img src="/assets/img/product-laptop.png"
-                            alt="Laptop Gaming ASUS ROG Strix G15" class="product-main-image" />
-                        <div class="product-thumbnails">
-                            <img src="/assets/img/laptop1.svg"
-                                alt="Thumbnail 1" class="product-thumbnail active" />
-                            <img src="/assets/img/laptop2.svg"
-                                alt="Thumbnail 2" class="product-thumbnail" />
-                            <img src="/assets/img/laptop3.svg"
-                                alt="Thumbnail 3" class="product-thumbnail" />
-                            <img src="/assets/img/laptop4.svg"
-                                alt="Thumbnail 4" class="product-thumbnail" />
+                        <img src="<?= base_url($mainImg) ?>"
+                            alt="<?= esc($produk['nama_produk'] ?? 'Produk') ?>" class="product-main-image" id="mainImage" />
+                        <div class="product-thumbnails" id="thumbnailContainer">
+                            <?php foreach ($fotos as $index => $foto): ?>
+                                <img src="<?= base_url($foto['foto_produk']) ?>"
+                                    alt="Thumbnail <?= $index + 1 ?>" class="product-thumbnail <?= $index === 0 ? 'active' : '' ?>"
+                                    data-src="<?= base_url($foto['foto_produk']) ?>" />
+                            <?php endforeach; ?>
                         </div>
                         <div class="seller-info">
-                            <img src="/assets/img/laptop1.svg"
-                                alt="ASUS Official Store" class="seller-avatar" />
+                            <img src="<?= !empty($toko['logo_toko']) ? base_url($toko['logo_toko']) : base_url('assets/img/laptop1.svg') ?>"
+                                alt="<?= esc($toko['nama_toko'] ?? 'Toko') ?>" class="seller-avatar" />
                             <div class="seller-details">
-                                <div class="seller-name">ASUS Official Store</div>
+                                <div class="seller-name"><?= esc($toko['nama_toko'] ?? 'Toko') ?></div>
                                 <div class="seller-verified">
                                     <img src="/assets/img/verify.png" alt="Verified" />
-                                    <span>Verified Seller</span>
+                                    <span><?= ($toko['status_toko'] ?? '') === 'verified_seller' ? 'Verified Seller' : 'Official Store' ?></span>
                                 </div>
                             </div>
                             <button class="visit-store-btn">
@@ -1014,46 +1079,58 @@ body {
                     </div>
 
                     <div class="product-info">
+                        <?php
+                            $ratingValue = isset($produk['rating']) ? (float)$produk['rating'] : 0.0;
+                            $ratingCount = isset($produk['jumlah_penilaian']) ? (int)$produk['jumlah_penilaian'] : 0;
+                            $terjual = isset($produk['terjual']) ? (int)$produk['terjual'] : 0;
+                            $ratingLabel = $ratingCount > 0 ? number_format($ratingValue, 1, ',', '.') : '0.0';
+                            $penilaianLabel = $ratingCount > 0 ? number_format($ratingCount, 0, ',', '.') . ' Penilaian' : 'Belum ada penilaian';
+                            $terjualLabel = $terjual > 0 ? number_format($terjual, 0, ',', '.') . ' Terjual' : '0 Terjual';
+                        ?>
                         <div class="product-badges">
-                            <span class="product-badge official">Official Store</span>
-                            <span class="product-badge stock">Ready Stock</span>
+                            <?php if (($toko['status_toko'] ?? '') === 'official_store'): ?>
+                                <span class="product-badge official">Official Store</span>
+                            <?php endif; ?>
+                            <?php if (($produk['stok'] ?? 0) > 0): ?>
+                                <span class="product-badge stock">Ready Stock</span>
+                            <?php endif; ?>
                         </div>
                         <h1 class="product-title">
-                            Laptop Gaming ASUS ROG Strix G15 - Intel Core i7 Gen 12, RTX
-                            3060, 16GB RAM
+                            <?= esc($produk['nama_produk'] ?? 'Produk') ?>
                         </h1>
                         <div class="product-rating">
                             <div class="rating-stars">
-                                <img src="/assets/img/rating.png"
-                                    alt="Star" />
-                                <img src="/assets/img/rating.png"
-                                    alt="Star" />
-                                <img src="/assets/img/rating.png"
-                                    alt="Star" />
-                                <img src="/assets/img/rating.png"
-                                    alt="Star" />
-                                <img src="/assets/img/rating.png"
-                                    alt="Star" />
+                                <?php for ($i = 1; $i <= 5; $i++): ?>
+                                    <?php $filled = $ratingValue >= $i - 0.5; ?>
+                                    <span class="rating-star <?= $filled ? 'filled' : '' ?>">★</span>
+                                <?php endfor; ?>
                             </div>
-                            <span class="rating-value">4.9</span>
+                            <span class="rating-value"><?= esc($ratingLabel) ?></span>
                             <span class="rating-divider">|</span>
-                            <span class="rating-text">2.847 Penilaian</span>
+                            <span class="rating-text"><?= esc($penilaianLabel) ?></span>
                             <span class="rating-divider">|</span>
-                            <span class="rating-text">5.234 Terjual</span>
+                            <span class="rating-text"><?= esc($terjualLabel) ?></span>
                         </div>
                         <div class="product-price-box">
                             <div class="price-row">
-                                <span class="price-current">Rp 18.999.000</span>
-                                <span class="price-old">Rp 22.500.000</span>
+                                <span class="price-current" id="priceCurrent">Rp <?= number_format($hargaTampil, 0, ',', '.') ?></span>
+                                <?php if ($hargaAwal > 0 && $hargaAwal > $hargaTampil): ?>
+                                    <span class="price-old" id="priceOld">Rp <?= number_format($hargaAwal, 0, ',', '.') ?></span>
+                                <?php else: ?>
+                                    <span class="price-old" id="priceOld" style="display:none;">Rp <?= number_format($hargaAwal, 0, ',', '.') ?></span>
+                                <?php endif; ?>
                             </div>
-                            <span class="discount-badge">Hemat 16%</span>
+                            <?php if ($hargaAwal > 0 && $hargaAwal > $hargaTampil): ?>
+                                <?php $diskonPersen = round((($hargaAwal - $hargaTampil) / $hargaAwal) * 100); ?>
+                                <span class="discount-badge">Hemat <?= $diskonPersen ?>%</span>
+                            <?php endif; ?>
                         </div>
                         <div class="shipping-section">
                             <div class="shipping-title">
                                 <img src="/assets/img/mobil.png" alt="Shopping" />
                                 <span>Metode Pengiriman</span>
                             </div>
-                            <div class="shipping-option selected">
+                            <div class="shipping-option selected" data-method="antar">
                                 <div class="shipping-content">
                                     <div class="shipping-radio selected"></div>
                                     <div class="shipping-info">
@@ -1066,7 +1143,7 @@ body {
                                     <span class="shipping-price">Rp 15.000</span>
                                 </div>
                             </div>
-                            <div class="shipping-option">
+                            <div class="shipping-option" data-method="datang">
                                 <div class="shipping-content">
                                     <div class="shipping-radio"></div>
                                     <div class="shipping-info">
@@ -1083,22 +1160,29 @@ body {
                         <div class="variant-section">
                             <div class="variant-label">Pilih Varian:</div>
                             <div class="variant-buttons">
-                                <button class="variant-button selected">
-                                    16GB RAM / 512GB SSD
-                                </button>
-                                <button class="variant-button">32GB RAM / 1TB SSD</button>
+                                <?php if (!empty($varianList)): ?>
+                                    <?php foreach ($varianList as $i => $varian): ?>
+                                        <button class="variant-button <?= $i === 0 ? 'selected' : '' ?>"
+                                            data-additional="<?= (float)($varian['harga_tambahan'] ?? 0) ?>"
+                                            data-images='<?= json_encode($varian['gambar_varian'] ?? []) ?>'>
+                                            <?= esc($varian['nama_varian'] . ' / ' . $varian['nilai_varian']) ?>
+                                        </button>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <button class="variant-button selected">Default</button>
+                                <?php endif; ?>
                             </div>
                         </div>
                         <div class="quantity-section">
                             <div class="variant-label">Jumlah:</div>
                             <div class="quantity-control">
                                 <div class="quantity-input-group">
-                                    <button type="button" class="quantity-btn" onclick="updateQuantity(-1)">
+                                    <button type="button" class="quantity-btn qty-dec">
                                         <img src="/assets/img/minus.png" alt="Decrease" />
                                     </button>
                                     <input type="number" name="quantity" id="quantityInput" class="quantity-input"
-                                        value="1" min="1" max="10" readonly />
-                                    <button type="button" class="quantity-btn" onclick="updateQuantity(1)">
+                                        value="1" min="1" max="99" readonly />
+                                    <button type="button" class="quantity-btn qty-inc">
                                         <img src="/assets/img/plus.png" alt="Increase" />
                                     </button>
                                 </div>
@@ -1106,13 +1190,13 @@ body {
                             </div>
                         </div>
                         <div class="product-actions">
-                            <button class="btn-cart">
-                                <img src="/assets/img/keranjang.png" alt="Cart" /><a href="/cart">
-                                    Tambah ke Keranjang
-                                </a>
-                            </button>
-                            <button class="btn-order"><a href="/pesan">Buat Pesanan</a></button>
-                            <button class="btn-wishlist">
+                            <input type="hidden" id="shippingChoice" value="antar">
+                            <a class="btn-cart" id="addToCartBtn" href="#">
+                                <img src="/assets/img/keranjang.png" alt="Cart" />
+                                Tambah ke Keranjang
+                            </a>
+                            <a class="btn-order" id="orderNowBtn" href="#">Buat Pesanan</a>
+                            <button class="btn-wishlist" aria-label="Tambah ke Wishlist">
                                 <img src="/assets/img/love.png" alt="Wishlist" />
                             </button>
                         </div>
@@ -1120,69 +1204,29 @@ body {
                 </div>
             </div>
 
+            <?php if (!empty($produk['deskripsi_produk'])): ?>
             <div class="description-section">
                 <h2 class="description-title">Deskripsi Produk</h2>
-                <p class="description-text">
-                    Laptop Gaming ASUS ROG Strix G15 hadir dengan performa maksimal untuk
-                    para gamers profesional. Ditenagai oleh prosesor Intel Core i7
-                    Generasi ke-12 dan GPU NVIDIA GeForce RTX 3060, laptop ini mampu
-                    menjalankan game AAA terbaru dengan lancar.
-                </p>
-                <h3 class="description-subtitle">Spesifikasi:</h3>
-                <ul class="description-list">
-                    <li>
-                        <img src="/assets/img/centang.png" alt="Check" />
-                        Prosesor: Intel Core i7-12700H (14 Core, 20 Thread, up to 4.7GHz)
-                    </li>
-                    <li>
-                        <img src="/assets/img/centang.png" alt="Check" />
-                        GPU: NVIDIA GeForce RTX 3060 6GB GDDR6
-                    </li>
-                    <li>
-                        <img src="/assets/img/centang.png" alt="Check" />
-                        RAM: 16GB DDR5 4800MHz (Upgradeable to 32GB)
-                    </li>
-                    <li>
-                        <img src="/assets/img/centang.png" alt="Check" />
-                        Storage: 512GB NVMe SSD PCIe 4.0
-                    </li>
-                    <li>
-                        <img src="/assets/img/centang.png" alt="Check" />
-                        Display: 15.6" FHD (1920x1080) 144Hz IPS-Level
-                    </li>
-                    <li>
-                        <img src="/assets/img/centang.png" alt="Check" />
-                        Keyboard: RGB Per-Key Backlit
-                    </li>
-                    <li>
-                        <img src="/assets/img/centang.png" alt="Check" />
-                        Cooling: ROG Intelligent Cooling dengan Dual Fan
-                    </li>
-                    <li>
-                        <img src="/assets/img/centang.png" alt="Check" />
-                        Battery: 90Wh dengan Fast Charging
-                    </li>
-                </ul>
-                <h3 class="description-subtitle">Dalam Paket:</h3>
-                <ul class="description-list">
-                    <li>
-                        <img src="/assets/img/paket.png" alt="Check" />
-                        1x Laptop ASUS ROG Strix G15
-                    </li>
-                    <li>
-                        <img src="/assets/img/paket.png" alt="Check" />
-                        1x Adaptor 240W
-                    </li>
-                    <li>
-                        <img src="/assets/img/paket.png" alt="Check" />
-                        1x Buku Manual & Kartu Garansi
-                    </li>
-                    <li>
-                        <img src="/assets/img/paket.png" alt="Check" />
-                        Bonus: Gaming Mouse Pad ROG
-                    </li>
-                </ul>
+                <div class="description-text">
+                    <?= nl2br(esc($produk['deskripsi_produk'])) ?>
+                </div>
+                
+                <?php if (!empty($produk['merek'])): ?>
+                    <h3 class="description-subtitle">Merek:</h3>
+                    <p class="description-text"><?= esc($produk['merek']) ?></p>
+                <?php endif; ?>
+                
+                <?php if (!empty($produk['sku'])): ?>
+                    <h3 class="description-subtitle">SKU:</h3>
+                    <p class="description-text"><?= esc($produk['sku']) ?></p>
+                <?php endif; ?>
+                
+                <?php if (!empty($produk['berat']) && $produk['berat'] > 0): ?>
+                    <h3 class="description-subtitle">Berat:</h3>
+                    <p class="description-text"><?= number_format($produk['berat'], 0, ',', '.') ?> gram</p>
+                <?php endif; ?>
             </div>
+            <?php endif; ?>
 
             <div class="reviews-section">
                 <div class="reviews-header">
@@ -1191,56 +1235,51 @@ body {
                 </div>
                 <div class="reviews-summary">
                     <div class="reviews-rating">
-                        <div class="reviews-rating-value">4.9</div>
+                        <div class="reviews-rating-value">0.0</div>
                         <div class="reviews-rating-stars">
-                            <img src="/assets/img/rating.png"
-                                alt="Star" />
-                            <img src="/assets/img/rating.png"
-                                alt="Star" />
-                            <img src="/assets/img/rating.png"
-                                alt="Star" />
-                            <img src="/assets/img/rating.png"
-                                alt="Star" />
-                            <img src="/assets/img/rating.png"
-                                alt="Star" />
+                            <span class="rating-star">★</span>
+                            <span class="rating-star">★</span>
+                            <span class="rating-star">★</span>
+                            <span class="rating-star">★</span>
+                            <span class="rating-star">★</span>
                         </div>
-                        <div class="reviews-rating-text">dari 2.847 ulasan</div>
+                        <div class="reviews-rating-text">Belum ada ulasan</div>
                     </div>
                     <div class="reviews-distribution">
                         <div class="reviews-bar">
                             <span class="reviews-bar-label">5★</span>
                             <div class="reviews-bar-track">
-                                <div class="reviews-bar-fill" style="width: 87%;"></div>
+                                <div class="reviews-bar-fill" style="width: 0%;"></div>
                             </div>
-                            <span class="reviews-bar-count">2,477</span>
+                            <span class="reviews-bar-count">0</span>
                         </div>
                         <div class="reviews-bar">
                             <span class="reviews-bar-label">4★</span>
                             <div class="reviews-bar-track">
-                                <div class="reviews-bar-fill" style="width: 10%;"></div>
+                                <div class="reviews-bar-fill" style="width: 0%;"></div>
                             </div>
-                            <span class="reviews-bar-count">285</span>
+                            <span class="reviews-bar-count">0</span>
                         </div>
                         <div class="reviews-bar">
                             <span class="reviews-bar-label">3★</span>
                             <div class="reviews-bar-track">
-                                <div class="reviews-bar-fill" style="width: 2%;"></div>
+                                <div class="reviews-bar-fill" style="width: 0%;"></div>
                             </div>
-                            <span class="reviews-bar-count">57</span>
+                            <span class="reviews-bar-count">0</span>
                         </div>
                         <div class="reviews-bar">
                             <span class="reviews-bar-label">2★</span>
                             <div class="reviews-bar-track">
-                                <div class="reviews-bar-fill" style="width: 1%;"></div>
+                                <div class="reviews-bar-fill" style="width: 0%;"></div>
                             </div>
-                            <span class="reviews-bar-count">19</span>
+                            <span class="reviews-bar-count">0</span>
                         </div>
                         <div class="reviews-bar">
                             <span class="reviews-bar-label">1★</span>
                             <div class="reviews-bar-track">
-                                <div class="reviews-bar-fill" style="width: 0.3%;"></div>
+                                <div class="reviews-bar-fill" style="width: 0%;"></div>
                             </div>
-                            <span class="reviews-bar-count">9</span>
+                            <span class="reviews-bar-count">0</span>
                         </div>
                     </div>
                 </div>
@@ -1379,56 +1418,199 @@ body {
         </main>
 
         <script>
-        /**
-         * Update quantity berdasarkan increment/decrement
-         * @param {number} change - nilai perubahan (-1 untuk kurang, 1 untuk tambah)
-         */
-        function updateQuantity(change) {
-            const quantityInput = document.getElementById('quantityInput');
-            let currentValue = parseInt(quantityInput.value) || 1;
-            const maxStock = 47; // Sesuaikan dengan nilai stok
-            const minQuantity = 1;
+            (function () {
+                const basePrice = <?= (int) $hargaTampil ?>;
+                const basePriceOriginal = <?= (int) $hargaAwal ?>;
+                let variantExtra = 0;
+                const defaultImages = <?= json_encode(array_values(array_map(fn($f) => base_url($f['foto_produk']), $fotos))) ?>;
 
-            // Hitung nilai baru
-            let newValue = currentValue + change;
+                const priceCurrentEl = document.getElementById('priceCurrent');
+                const priceOldEl = document.getElementById('priceOld');
+                const qtyInput = document.getElementById('quantityInput');
+                const decBtn = document.querySelector('.qty-dec');
+                const incBtn = document.querySelector('.qty-inc');
+                const variantButtons = document.querySelectorAll('.variant-button');
+                const mainImageEl = document.getElementById('mainImage');
+                const thumbnailContainer = document.getElementById('thumbnailContainer');
+                const shippingOptions = document.querySelectorAll('.shipping-option');
+                let selectedShipping = document.querySelector('.shipping-option.selected') || null;
 
-            // Validasi batas min dan max
-            if (newValue < minQuantity) {
-                newValue = minQuantity;
-            } else if (newValue > maxStock) {
-                newValue = maxStock;
-            }
+                const formatIDR = (val) => 'Rp ' + Number(val).toLocaleString('id-ID');
 
-            // Update input value
-            quantityInput.value = newValue;
+                function setMainImage(src) {
+                    if (!mainImageEl) return;
+                    mainImageEl.src = src;
+                    if (!thumbnailContainer) return;
+                    thumbnailContainer.querySelectorAll('.product-thumbnail').forEach(el => {
+                        el.classList.toggle('active', el.dataset.src === src);
+                    });
+                }
 
-            // Optional: Lakukan AJAX call ke server jika diperlukan
-            // saveQuantityToSession(newValue);
-        }
+                function ensureThumbnail(src) {
+                    if (!thumbnailContainer) return;
+                    const exists = Array.from(thumbnailContainer.querySelectorAll('.product-thumbnail')).some(el => el.dataset.src === src);
+                    if (exists) return;
+                    const imgEl = document.createElement('img');
+                    imgEl.src = src;
+                    imgEl.dataset.src = src;
+                    imgEl.alt = 'Thumbnail';
+                    imgEl.className = 'product-thumbnail';
+                    imgEl.onclick = () => setMainImage(src);
+                    thumbnailContainer.appendChild(imgEl);
+                }
 
-        /**
-         * Optional: Simpan quantity ke session/server via AJAX
-         * @param {number} quantity - jumlah yang akan disimpan
-         */
-        function saveQuantityToSession(quantity) {
-            fetch('<?= site_url('cart/update_quantity') ?>', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: JSON.stringify({
-                        quantity: quantity
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        console.log('Quantity updated:', data);
+                // Inisialisasi klik pada thumbnail yang sudah ada
+                thumbnailContainer?.querySelectorAll('.product-thumbnail').forEach(el => {
+                    el.dataset.src = el.dataset.src || el.src;
+                    el.onclick = () => setMainImage(el.dataset.src);
+                });
+
+                function refreshPrice() {
+                    const current = basePrice + variantExtra;
+                    const original = basePriceOriginal + variantExtra;
+                    priceCurrentEl.textContent = formatIDR(current);
+                    if (original > current && original > 0) {
+                        priceOldEl.style.display = '';
+                        priceOldEl.textContent = formatIDR(original);
+                    } else {
+                        priceOldEl.style.display = 'none';
                     }
-                })
-                .catch(error => console.error('Error:', error));
-        }
+                }
+
+                variantButtons.forEach((btn) => {
+                    btn.addEventListener('click', () => {
+                        variantButtons.forEach(b => b.classList.remove('selected'));
+                        btn.classList.add('selected');
+                        variantExtra = Number(btn.dataset.additional || 0);
+                        refreshPrice();
+
+                        const imgs = (() => {
+                            try {
+                                const parsed = JSON.parse(btn.dataset.images || '[]');
+                                if (Array.isArray(parsed) && parsed.length) {
+                                    return parsed.map(src => src.startsWith('http') ? src : '<?= base_url() ?>/' + src);
+                                }
+                            } catch (e) {}
+                            return defaultImages;
+                        })();
+
+                        // Pastikan semua gambar varian ditambahkan tanpa menghapus thumbnail yang sudah ada
+                        imgs.forEach(src => ensureThumbnail(src));
+                        if (imgs.length) {
+                            setMainImage(imgs[0]);
+                        } else if (defaultImages.length) {
+                            setMainImage(defaultImages[0]);
+                        }
+                    });
+                });
+
+                function selectShipping(opt) {
+                    shippingOptions.forEach(o => {
+                        o.classList.remove('selected');
+                        const radio = o.querySelector('.shipping-radio');
+                        radio?.classList.remove('selected');
+                    });
+                    opt.classList.add('selected');
+                    const radio = opt.querySelector('.shipping-radio');
+                    radio?.classList.add('selected');
+                    selectedShipping = opt;
+                    const method = opt.dataset.method || '';
+                    if (method) {
+                        localStorage.setItem('shipping_method', method);
+                    }
+                }
+
+                shippingOptions.forEach(opt => {
+                    opt.addEventListener('click', () => selectShipping(opt));
+                });
+
+                // Restore shipping choice
+                const savedShipping = localStorage.getItem('shipping_method');
+                if (savedShipping) {
+                    const target = document.querySelector(`.shipping-option[data-method="${savedShipping}"]`);
+                    if (target) {
+                        selectShipping(target);
+                    }
+                } else if (selectedShipping) {
+                    selectShipping(selectedShipping);
+                }
+
+                function updateQty(delta) {
+                    if (!qtyInput) return;
+                    const min = Number(qtyInput.min) || 1;
+                    const max = Number(qtyInput.max) || 99;
+                    let val = Number(qtyInput.value) || min;
+                    val = Math.min(max, Math.max(min, val + delta));
+                    qtyInput.value = val;
+                    attachCartLinks();
+                }
+
+                decBtn?.addEventListener('click', () => updateQty(-1));
+                incBtn?.addEventListener('click', () => updateQty(1));
+
+                function attachCartLinks() {
+                    const addBtn = document.getElementById('addToCartBtn');
+                    const orderBtn = document.getElementById('orderNowBtn');
+                    const pid = '<?= $produk['id_produk'] ?? '' ?>';
+                    const currentShipping = localStorage.getItem('shipping_method') || 'antar';
+                    const qtyVal = qtyInput ? qtyInput.value : 1;
+                    if (addBtn) {
+                        addBtn.href = `<?= base_url('cart') ?>?id=${pid}&qty=${qtyVal}`;
+                    }
+                    if (orderBtn) {
+                        orderBtn.href = `<?= base_url('pesan') ?>?id=${pid}&qty=${qtyVal}&shipping=${currentShipping}`;
+                    }
+                }
+
+                document.getElementById('addToCartBtn')?.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    attachCartLinks();
+                    const href = e.currentTarget.getAttribute('href');
+                    window.location.href = href;
+                });
+
+                document.getElementById('orderNowBtn')?.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    attachCartLinks();
+                    const href = e.currentTarget.getAttribute('href');
+                    window.location.href = href;
+                });
+
+                qtyInput?.addEventListener('change', attachCartLinks);
+                qtyInput?.addEventListener('input', attachCartLinks);
+                attachCartLinks();
+
+                // Wishlist toggle (save to localStorage)
+                const wishlistBtn = document.querySelector('.btn-wishlist');
+                const mainImgEl = document.querySelector('.product-main-image');
+                function addToWishlist() {
+                    const pid = '<?= $produk['id_produk'] ?? '' ?>';
+                    const title = '<?= esc($produk['nama_produk'] ?? 'Produk') ?>';
+                    const priceText = document.getElementById('priceCurrent')?.textContent || '0';
+                    const priceNum = Number((priceText || '').replace(/[^0-9]/g, '')) || 0;
+                    const img = mainImgEl?.getAttribute('src') || '';
+                    let list = [];
+                    try {
+                        list = JSON.parse(localStorage.getItem('wishlist_items') || '[]');
+                        if (!Array.isArray(list)) list = [];
+                    } catch (e) { list = []; }
+                    const filtered = list.filter(i => (i.pid || '') !== pid);
+                    filtered.unshift({ pid, title, price: priceNum, img });
+                    localStorage.setItem('wishlist_items', JSON.stringify(filtered.slice(0, 50)));
+                    if (wishlistBtn) {
+                        const label = wishlistBtn.querySelector('span') || wishlistBtn;
+                        label.textContent = 'Sudah di Wishlist';
+                        wishlistBtn.style.borderColor = '#2563eb';
+                        wishlistBtn.style.color = '#2563eb';
+                    }
+                }
+                wishlistBtn?.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    addToWishlist();
+                });
+
+                refreshPrice();
+            })();
         </script>
     </body>
 

@@ -73,5 +73,38 @@ class ProdukModel extends Model
             return $harga_awal - $harga_diskon;
         }
     }
+
+    // Search products by keyword
+    public function searchProduk($keyword, $id_toko = null)
+    {
+        $builder = $this->db->table($this->table . ' p');
+        $builder->select('p.*, k.nama_kategori, m.nama_menu, pr.nama_promo');
+        $builder->join('kategori k', 'k.id_kategori = p.id_kategori', 'left');
+        $builder->join('menu m', 'm.id_menu = p.id_menu', 'left');
+        $builder->join('promo pr', 'pr.id_promo = p.id_promo', 'left');
+        
+        // Filter by store if provided
+        if ($id_toko !== null) {
+            $builder->where('p.id_toko', $id_toko);
+        }
+        
+        // Search in product name, description, brand, and SKU
+        if (!empty($keyword)) {
+            $builder->groupStart();
+            $builder->like('p.nama_produk', $keyword);
+            $builder->orLike('p.deskripsi_produk', $keyword);
+            $builder->orLike('p.merek', $keyword);
+            $builder->orLike('p.sku', $keyword);
+            $builder->orLike('k.nama_kategori', $keyword);
+            $builder->orLike('m.nama_menu', $keyword);
+            $builder->groupEnd();
+        }
+        
+        // Only show active products (not draft)
+        $builder->where('p.status_produk !=', 'draft');
+        
+        $builder->orderBy('p.created_at', 'DESC');
+        return $builder->get()->getResultArray();
+    }
 }
 

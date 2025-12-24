@@ -15,6 +15,16 @@ $routes->setAutoRoute(true);
 
 // Default home route
 $routes->get('/', 'Home::index');
+$routes->get('login', 'Auth::loginUser');
+$routes->get('register', 'Auth::registerUser');
+$routes->get('admin/login', 'Auth::loginAdmin');
+$routes->get('admin/register', 'Auth::registerAdmin');
+$routes->get('terms', 'Auth::terms');
+$routes->get('privacy', 'Auth::privacy');
+$routes->post('auth/login', 'Auth::doLogin');
+$routes->post('auth/register', 'Auth::doRegister');
+$routes->post('auth/google/callback', 'Auth::googleCallback');
+$routes->get('logout', 'Auth::logout');
 
 // User routes
 $routes->get('Home/index', 'Home::index');
@@ -22,9 +32,12 @@ $routes->get('produk', 'Home::produk');
 $routes->get('chat_penjual', 'Home::chatPenjual');
 $routes->get('cart', 'Home::cart');
 $routes->get('pesan', 'Home::pesan');
+$routes->post('pesan/create', 'Home::createOrder');
 $routes->get('test', 'Home::test');
 $routes->get('profile', 'Home::profile');
+$routes->post('profile/save', 'Home::updateProfile');
 $routes->get('kategori', 'Home::kategori');
+$routes->get('search', 'Home::search');
 
 // Admin routes
 $routes->get('admin/dashboard', 'Admin::dashboard');

@@ -1,35 +1,59 @@
 <?php
-// Get category from URL parameter, default to 'elektronik'
-$category = isset($_GET['kategori']) ? $_GET['kategori'] : 'elektronik';
-$menu = isset($_GET['menu']) ? $_GET['menu'] : 'menu1';
+    // Utility slug (hindari redeclare)
+    if (!function_exists('slugify_kat')) {
+        function slugify_kat($text) {
+            $text = strtolower(trim($text ?? ''));
+            $text = preg_replace('/[^a-z0-9]+/i', '-', $text);
+            return trim($text, '-');
+        }
+    }
 
-// Category names mapping
-$categoryNames = [
-    'elektronik' => 'Elektronik',
-    'fashion' => 'Fashion',
-    'buku' => 'Buku',
-    'aplikasi-jasa' => 'Aplikasi & Jasa',
-    'makanan' => 'Makanan',
-    'olahraga' => 'Olahraga',
-    'lainnya' => 'Lainnya'
-];
+    // Data dikirim dari controller Home::kategori atau Home::search
+    $kategoriList = $kategoriList ?? [];
+    $selectedKategori = $selectedKategori ?? null;
+    $menuList = $menuList ?? [];
+    $selectedMenu = $selectedMenu ?? null;
+    $produkList = $produkList ?? [];
+    $keyword = $keyword ?? '';
+    $kategoriParamRaw = $_GET['kategori'] ?? '';
+    $kategoriParamSlug = slugify_kat($kategoriParamRaw);
 
-// Menu items based on category - 8 items for testing
-$menuItems = [
-    'elektronik' => ['Laptop', 'Smartphone', 'Tablet', 'Aksesoris', 'Gaming', 'Audio', 'Kamera', 'Smartwatch'],
-    'fashion' => ['Pakaian', 'Sepatu', 'Tas', 'Aksesoris', 'Jam', 'Perhiasan', 'Kacamata', 'Topi'],
-    'buku' => ['Buku Teknik', 'Buku Fiksi', 'Buku Akademik', 'Komik', 'Majalah', 'Novel', 'Biografi', 'Ensiklopedia'],
-    'aplikasi-jasa' => ['Aplikasi', 'Desain', 'Programming', 'Marketing', 'Konsultasi', 'Editing', 'Translasi', 'Tutor'],
-    'makanan' => ['Makanan Ringan', 'Minuman', 'Kue', 'Makanan Berat', 'Cemilan', 'Buah', 'Sayuran', 'Daging'],
-    'olahraga' => ['Sepak Bola', 'Basket', 'Tenis', 'Renang', 'Fitness', 'Lari', 'Yoga', 'Sepeda'],
-    'lainnya' => ['Furniture', 'Olahraga', 'Kesehatan', 'Kecantikan', 'Hobi', 'Mainan', 'Dekorasi', 'Alat Rumah']
-];
+    // Fallback jika belum ada data
+    if (!$selectedKategori && !empty($kategoriList)) {
+        // Cari berdasarkan parameter jika ada
+        foreach ($kategoriList as $kat) {
+            $katSlug = slugify_kat($kat['nama_kategori'] ?? '');
+            if (($kategoriParamRaw && (string)$kategoriParamRaw === (string)($kat['id_kategori'] ?? '')) ||
+                ($kategoriParamSlug && $kategoriParamSlug === $katSlug)) {
+                $selectedKategori = $kat;
+                break;
+            }
+        }
+        if (!$selectedKategori) {
+            $selectedKategori = $kategoriList[0];
+        }
+    }
 
-$currentCategoryName = $categoryNames[$category] ?? 'Elektronik';
-$currentMenus = $menuItems[$category] ?? $menuItems['elektronik'];
+    $currentCategoryName = $selectedKategori['nama_kategori'] ?? 'Kategori';
+
+    // Perbesar ikon kategori supaya mudah terlihat
 ?>
-
 <link rel="stylesheet" href="<?= base_url('assets/css/kategori-page.css') ?>">
+
+<style>
+.category-card__icon img {
+    width: 140px !important;
+    height: 140px !important;
+    object-fit: cover;
+}
+.category-card__icon {
+    width: 160px !important;
+    height: 160px !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+</style>
 
 <main>
     <!-- Category Cards Section -->
@@ -38,51 +62,32 @@ $currentMenus = $menuItems[$category] ?? $menuItems['elektronik'];
             <div>
                 <h2>Kategori Utama</h2>
                 <p>Temukan berbagai produk dan jasa dari mahasiswa ISB</p>
+                <p style="margin-top:8px;color:#475467;font-weight:600">
+                    Kategori terpilih: <?= esc($currentCategoryName) ?> (ID: <?= esc($selectedKategori['id_kategori'] ?? '-') ?>)
+                </p>
             </div>
         </div>
         <div class="category-grid">
-            <a href="<?= base_url('kategori?kategori=elektronik&menu=menu1') ?>" class="category-card <?= ($category === 'elektronik') ? 'active' : '' ?>">
-                <div class="category-card__icon">
-                    <img src="/assets/img/logo1.png" alt="" />
-                </div>
-                <h3>Elektronik</h3>
-            </a>
-            <a href="<?= base_url('kategori?kategori=fashion&menu=menu1') ?>" class="category-card <?= ($category === 'fashion') ? 'active' : '' ?>">
-                <div class="category-card__icon">
-                    <img src="/assets/img/logo2.png" alt="" />
-                </div>
-                <h3>Fashion</h3>
-            </a>
-            <a href="<?= base_url('kategori?kategori=buku&menu=menu1') ?>" class="category-card <?= ($category === 'buku') ? 'active' : '' ?>">
-                <div class="category-card__icon">
-                    <img src="/assets/img/logo3.png" alt="" />
-                </div>
-                <h3>Buku</h3>
-            </a>
-            <a href="<?= base_url('kategori?kategori=aplikasi-jasa&menu=menu1') ?>" class="category-card <?= ($category === 'aplikasi-jasa') ? 'active' : '' ?>">
-                <div class="category-card__icon">
-                    <img src="/assets/img/logo4.png" alt="" />
-                </div>
-                <h3>Aplikasi &amp; Jasa</h3>
-            </a>
-            <a href="<?= base_url('kategori?kategori=makanan&menu=menu1') ?>" class="category-card <?= ($category === 'makanan') ? 'active' : '' ?>">
-                <div class="category-card__icon">
-                    <img src="/assets/img/logo5.png" alt="" />
-                </div>
-                <h3>Makanan</h3>
-            </a>
-            <a href="<?= base_url('kategori?kategori=olahraga&menu=menu1') ?>" class="category-card <?= ($category === 'olahraga') ? 'active' : '' ?>">
-                <div class="category-card__icon">
-                    <img src="/assets/img/logo1.png" alt="" />
-                </div>
-                <h3>Olahraga</h3>
-            </a>
-            <a href="<?= base_url('kategori?kategori=lainnya&menu=menu1') ?>" class="category-card <?= ($category === 'lainnya') ? 'active' : '' ?>">
-                <div class="category-card__icon">
-                    <img src="/assets/img/logo6.png" alt="" />
-                </div>
-                <h3>Lainnya</h3>
-            </a>
+            <?php if (!empty($kategoriList)): ?>
+                <?php foreach ($kategoriList as $kat): ?>
+                    <?php
+                        $katSlug = slugify_kat($kat['nama_kategori'] ?? '');
+                        $isActive = (!empty($selectedKategori['id_kategori']) && $selectedKategori['id_kategori'] == ($kat['id_kategori'] ?? null))
+                            || ($kategoriParamSlug && $kategoriParamSlug === $katSlug)
+                            || ($kategoriParamRaw && (string)$kategoriParamRaw === (string)($kat['id_kategori'] ?? ''));
+                    ?>
+                    <a href="<?= base_url('kategori?kategori=' . urlencode($kat['id_kategori'] ?? $katSlug)) ?>"
+                       class="category-card <?= $isActive ? 'active' : '' ?>">
+                        <div class="category-card__icon">
+                            <img src="<?= !empty($kat['icon_kategori']) ? base_url($kat['icon_kategori']) : base_url('assets/img/logo1.png') ?>" alt="<?= esc($kat['nama_kategori']) ?>" />
+                        </div>
+                        <h3><?= esc($kat['nama_kategori']) ?></h3>
+                        <div style="font-size:12px;color:#64748b">ID: <?= esc($kat['id_kategori'] ?? '-') ?></div>
+                    </a>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <p>Belum ada kategori.</p>
+            <?php endif; ?>
         </div>
     </section>
 
@@ -90,12 +95,16 @@ $currentMenus = $menuItems[$category] ?? $menuItems['elektronik'];
     <section class="category-menu-bar">
         <div class="container">
             <div class="category-menu">
-                <?php foreach ($currentMenus as $index => $menuName): ?>
-                    <a href="<?= base_url('kategori?kategori=' . $category . '&menu=menu' . ($index + 1)) ?>" 
-                       class="category-menu-item <?= ($menu === 'menu' . ($index + 1)) ? 'active' : '' ?>">
-                        <?= $menuName ?>
-                    </a>
-                <?php endforeach; ?>
+                <?php if (!empty($menuList)): ?>
+                    <?php foreach ($menuList as $menuItem): ?>
+                        <a href="<?= base_url('kategori?kategori=' . urlencode($selectedKategori['id_kategori'] ?? '') . '&menu=' . urlencode($menuItem['id_menu'])) ?>" 
+                           class="category-menu-item <?= (!empty($selectedMenu['id_menu']) && $selectedMenu['id_menu'] == $menuItem['id_menu']) ? 'active' : '' ?>">
+                            <?= esc($menuItem['nama_menu']) ?>
+                        </a>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <span>Tidak ada menu pada kategori ini.</span>
+                <?php endif; ?>
             </div>
         </div>
     </section>
@@ -116,242 +125,57 @@ $currentMenus = $menuItems[$category] ?? $menuItems['elektronik'];
     <section class="products" id="produk">
         <div class="section-heading">
             <div>
-                <h2>Produk <?= $currentCategoryName ?></h2>
-                <p>Produk terbaik dari kategori <?= $currentCategoryName ?></p>
+                <?php if (!empty($keyword)): ?>
+                    <h2>Hasil Pencarian: "<?= esc($keyword) ?>"</h2>
+                    <p>Ditemukan <?= count($produkList) ?> produk untuk "<?= esc($keyword) ?>"</p>
+                <?php else: ?>
+                    <h2>Produk <?= esc($currentCategoryName) ?></h2>
+                    <p>Produk terbaik dari kategori <?= esc($currentCategoryName) ?></p>
+                <?php endif; ?>
             </div>
-            <a class="link" href="<?= base_url('#') ?>">Home</a>
+            <a class="link" href="<?= base_url('') ?>">Home</a>
         </div>
         <div class="product-grid">
-            <!-- Product Cards -->
-            <article class="product-card">
-                <a href="<?= base_url('produk') ?>">
-                    <img src="/assets/img/gambarprd.png" alt="Laptop Gaming ROG" />
-                </a>
-                <div class="product-card__body">
-                    <h3>Laptop Gaming ROG</h3>
-                    <div class="rating">
-                        <span class="stars" aria-label="Rating 4.8 dari 5">
-                            <img src="/assets/img/stars.png" alt="" />
-                            <img src="/assets/img/stars.png" alt="" />
-                            <img src="/assets/img/stars.png" alt="" />
-                            <img src="/assets/img/stars.png" alt="" />
-                            <img src="/assets/img/stars.png" alt="" />
-                        </span>
-                        <span class="rating__value">(4.8)</span>
+            <?php if (!empty($produkList)): ?>
+                <?php foreach ($produkList as $item): ?>
+                    <?php
+                        $decodedImg = !empty($item['gambar_produk']) ? json_decode($item['gambar_produk'], true) : [];
+                        $firstImg = (json_last_error() === JSON_ERROR_NONE && is_array($decodedImg) && !empty($decodedImg)) ? $decodedImg[0] : ($item['gambar_produk'] ?? 'assets/img/gambarprd.png');
+                        $hargaTampil = ($item['harga_setelah_diskon'] ?? 0) > 0 ? $item['harga_setelah_diskon'] : $item['harga_awal'];
+                    ?>
+                    <article class="product-card">
+                        <a href="<?= base_url('produk?id=' . ($item['id_produk'] ?? '')) ?>">
+                            <img src="<?= base_url($firstImg) ?>" alt="<?= esc($item['nama_produk'] ?? 'Produk') ?>" />
+                        </a>
+                        <div class="product-card__body">
+                            <h3><?= esc($item['nama_produk'] ?? 'Produk') ?></h3>
+                            <div class="rating">
+                                <span class="stars" aria-label="Rating">
+                                    <img src="/assets/img/stars.png" alt="" />
+                                    <img src="/assets/img/stars.png" alt="" />
+                                    <img src="/assets/img/stars.png" alt="" />
+                                    <img src="/assets/img/stars.png" alt="" />
+                                    <img src="/assets/img/stars.png" alt="" />
+                                </span>
+                                <span class="rating__value">(4.8)</span>
+                            </div>
+                            <p class="price">Rp <?= number_format($hargaTampil ?? 0, 0, ',', '.') ?></p>
+                            <div class="product-card__actions">
+                                <a href="<?= base_url('cart?id=' . ($item['id_produk'] ?? '')) ?>" class="btn btn--primary w-100">Add to Cart</a>
+                            </div>
+                        </div>
+                    </article>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <?php if (!empty($keyword)): ?>
+                    <div style="grid-column: 1 / -1; padding: 40px; text-align: center; color: #64748b;">
+                        <p style="font-size: 18px; margin-bottom: 8px;">Tidak ada produk ditemukan untuk "<?= esc($keyword) ?>"</p>
+                        <p style="font-size: 14px;">Coba gunakan kata kunci lain atau <a href="<?= base_url('kategori') ?>" style="color: #2563eb; text-decoration: underline;">lihat semua produk</a></p>
                     </div>
-                    <p class="price">Rp 12.500.000</p>
-                    <div class="product-card__actions">
-                        <a href="<?= base_url('cart') ?>" class="btn btn--primary w-100">Add to Cart</a>
-                    </div>
-                </div>
-            </article>
-
-            <article class="product-card">
-                <a href="<?= base_url('produk') ?>">
-                    <img src="/assets/img/gambarprd2.png" alt="Tas Ransel Kampus" />
-                </a>
-                <div class="product-card__body">
-                    <h3>Mwing</h3>
-                    <div class="rating">
-                        <span class="stars" aria-label="Rating 4.2 dari 5">
-                            <img src="/assets/img/stars.png" alt="" />
-                            <img src="/assets/img/stars.png" alt="" />
-                            <img src="/assets/img/stars.png" alt="" />
-                            <img src="/assets/img/stars.png" alt="" />
-                            <img src="/assets/img/stars.png" alt="" />
-                        </span>
-                        <span class="rating__value">(4.2)</span>
-                    </div>
-                    <p class="price">Rp 285.000</p>
-                    <div class="product-card__actions">
-                        <a href="<?= base_url('cart') ?>" class="btn btn--primary w-100">Add to Cart</a>
-                    </div>
-                </div>
-            </article>
-
-            <article class="product-card">
-                <a href="<?= base_url('produk') ?>">
-                    <img src="/assets/img/gambarprd3.png" alt="Buku Algoritma" />
-                </a>
-                <div class="product-card__body">
-                    <h3>Buku Algoritma</h3>
-                    <div class="rating">
-                        <span class="stars" aria-label="Rating 5 dari 5">
-                            <img src="/assets/img/stars.png" alt="" />
-                            <img src="/assets/img/stars.png" alt="" />
-                            <img src="/assets/img/stars.png" alt="" />
-                            <img src="/assets/img/stars.png" alt="" />
-                            <img src="/assets/img/stars.png" alt="" />
-                        </span>
-                        <span class="rating__value">(5.0)</span>
-                    </div>
-                    <p class="price">Rp 125.000</p>
-                    <div class="product-card__actions">
-                        <a href="<?= base_url('cart') ?>" class="btn btn--primary w-100">Add to Cart</a>
-                    </div>
-                </div>
-            </article>
-
-            <article class="product-card">
-                <a href="<?= base_url('produk') ?>">
-                    <img src="/assets/img/gambarprd4.png" alt="iPhone 13 Pro" />
-                </a>
-                <div class="product-card__body">
-                    <h3>iPhone 13 Pro</h3>
-                    <div class="rating">
-                        <span class="stars" aria-label="Rating 4.6 dari 5">
-                            <img src="/assets/img/stars.png" alt="" />
-                            <img src="/assets/img/stars.png" alt="" />
-                            <img src="/assets/img/stars.png" alt="" />
-                            <img src="/assets/img/stars.png" alt="" />
-                            <img src="/assets/img/stars.png" alt="" />
-                        </span>
-                        <span class="rating__value">(4.6)</span>
-                    </div>
-                    <p class="price">Rp 15.500.000</p>
-                    <div class="product-card__actions">
-                        <a href="<?= base_url('cart') ?>" class="btn btn--primary w-100">Add to Cart</a>
-                    </div>
-                </div>
-            </article>
-
-            <article class="product-card">
-                <a href="<?= base_url('produk') ?>">
-                    <img src="/assets/img/gambarprd.png" alt="Laptop Gaming ROG" />
-                </a>
-                <div class="product-card__body">
-                    <h3>Laptop Gaming ROG</h3>
-                    <div class="rating">
-                        <span class="stars" aria-label="Rating 4.8 dari 5">
-                            <img src="/assets/img/stars.png" alt="" />
-                            <img src="/assets/img/stars.png" alt="" />
-                            <img src="/assets/img/stars.png" alt="" />
-                            <img src="/assets/img/stars.png" alt="" />
-                            <img src="/assets/img/stars.png" alt="" />
-                        </span>
-                        <span class="rating__value">(4.8)</span>
-                    </div>
-                    <p class="price">Rp 12.500.000</p>
-                    <div class="product-card__actions">
-                        <a href="<?= base_url('cart') ?>" class="btn btn--primary w-100">Add to Cart</a>
-                    </div>
-                </div>
-            </article>
-
-            <article class="product-card">
-                <a href="<?= base_url('produk') ?>">
-                    <img src="/assets/img/gambarprd2.png" alt="Tas Ransel Kampus" />
-                </a>
-                <div class="product-card__body">
-                    <h3>Tas Ransel Kampus</h3>
-                    <div class="rating">
-                        <span class="stars" aria-label="Rating 4.2 dari 5">
-                            <img src="/assets/img/stars.png" alt="" />
-                            <img src="/assets/img/stars.png" alt="" />
-                            <img src="/assets/img/stars.png" alt="" />
-                            <img src="/assets/img/stars.png" alt="" />
-                            <img src="/assets/img/stars.png" alt="" />
-                        </span>
-                        <span class="rating__value">(4.2)</span>
-                    </div>
-                    <p class="price">Rp 285.000</p>
-                    <div class="product-card__actions">
-                        <a href="<?= base_url('cart') ?>" class="btn btn--primary w-100">Add to Cart</a>
-                    </div>
-                </div>
-            </article>
-
-            <article class="product-card">
-                <a href="<?= base_url('produk') ?>">
-                    <img src="/assets/img/gambarprd3.png" alt="Buku Algoritma" />
-                </a>
-                <div class="product-card__body">
-                    <h3>Buku Algoritma</h3>
-                    <div class="rating">
-                        <span class="stars" aria-label="Rating 5 dari 5">
-                            <img src="/assets/img/stars.png" alt="" />
-                            <img src="/assets/img/stars.png" alt="" />
-                            <img src="/assets/img/stars.png" alt="" />
-                            <img src="/assets/img/stars.png" alt="" />
-                            <img src="/assets/img/stars.png" alt="" />
-                        </span>
-                        <span class="rating__value">(5.0)</span>
-                    </div>
-                    <p class="price">Rp 125.000</p>
-                    <div class="product-card__actions">
-                        <a href="<?= base_url('cart') ?>" class="btn btn--primary w-100">Add to Cart</a>
-                    </div>
-                </div>
-            </article>
-
-            <article class="product-card">
-                <a href="<?= base_url('produk') ?>">
-                    <img src="/assets/img/gambarprd4.png" alt="iPhone 13 Pro" />
-                </a>
-                <div class="product-card__body">
-                    <h3>iPhone 13 Pro</h3>
-                    <div class="rating">
-                        <span class="stars" aria-label="Rating 4.6 dari 5">
-                            <img src="/assets/img/stars.png" alt="" />
-                            <img src="/assets/img/stars.png" alt="" />
-                            <img src="/assets/img/stars.png" alt="" />
-                            <img src="/assets/img/stars.png" alt="" />
-                            <img src="/assets/img/stars.png" alt="" />
-                        </span>
-                        <span class="rating__value">(4.6)</span>
-                    </div>
-                    <p class="price">Rp 15.500.000</p>
-                    <div class="product-card__actions">
-                        <a href="<?= base_url('cart') ?>" class="btn btn--primary w-100">Add to Cart</a>
-                    </div>
-                </div>
-            </article>
-
-            <article class="product-card">
-                <a href="<?= base_url('produk') ?>">
-                    <img src="/assets/img/gambarprd.png" alt="Laptop Gaming ROG" />
-                </a>
-                <div class="product-card__body">
-                    <h3>Laptop Gaming ROG</h3>
-                    <div class="rating">
-                        <span class="stars" aria-label="Rating 4.8 dari 5">
-                            <img src="/assets/img/stars.png" alt="" />
-                            <img src="/assets/img/stars.png" alt="" />
-                            <img src="/assets/img/stars.png" alt="" />
-                            <img src="/assets/img/stars.png" alt="" />
-                            <img src="/assets/img/stars.png" alt="" />
-                        </span>
-                        <span class="rating__value">(4.8)</span>
-                    </div>
-                    <p class="price">Rp 12.500.000</p>
-                    <div class="product-card__actions">
-                        <a href="<?= base_url('cart') ?>" class="btn btn--primary w-100">Add to Cart</a>
-                    </div>
-                </div>
-            </article>
-
-            <article class="product-card">
-                <a href="<?= base_url('produk') ?>">
-                    <img src="/assets/img/gambarprd2.png" alt="Tas Ransel Kampus" />
-                </a>
-                <div class="product-card__body">
-                    <h3>Tas Ransel Kampus</h3>
-                    <div class="rating">
-                        <span class="stars" aria-label="Rating 4.2 dari 5">
-                            <img src="/assets/img/stars.png" alt="" />
-                            <img src="/assets/img/stars.png" alt="" />
-                            <img src="/assets/img/stars.png" alt="" />
-                            <img src="/assets/img/stars.png" alt="" />
-                            <img src="/assets/img/stars.png" alt="" />
-                        </span>
-                        <span class="rating__value">(4.2)</span>
-                    </div>
-                    <p class="price">Rp 285.000</p>
-                    <div class="product-card__actions">
-                        <a href="<?= base_url('cart') ?>" class="btn btn--primary w-100">Add to Cart</a>
-                    </div>
-                </div>
-            </article>
+                <?php else: ?>
+                    <p>Belum ada produk pada kategori ini.</p>
+                <?php endif; ?>
+            <?php endif; ?>
         </div>
     </section>
 </main>

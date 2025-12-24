@@ -30,7 +30,7 @@ class KategoriModel extends Model
         return $this->where('status', 'aktif')->orderBy('nama_kategori', 'ASC')->findAll();
     }
 
-    // Get all categories
+    // Get all categories (aktif + non-aktif)
     public function getAllKategori()
     {
         return $this->orderBy('nama_kategori', 'ASC')->findAll();

@@ -24,19 +24,28 @@
                     <span class="brand__name">ISBCOMMERCE</span>
                 </a>
 
-                <div class="search-bar">
-                    <img src="/assets/img/logosearch.png" alt="Search" />
-                    <input type="text" placeholder="Cari produk, jasa, atau toko..."
-                        aria-label="Cari produk, jasa, atau toko" />
-                </div>
+                <form action="<?= base_url('search') ?>" method="get" class="search-bar" style="display: flex; align-items: center; gap: 8px; flex: 1; max-width: 500px;" onsubmit="return this.querySelector('input[name=q]').value.trim() !== '';">
+                    <img src="/assets/img/logosearch.png" alt="Search" style="cursor: pointer;" onclick="this.closest('form').submit();" />
+                    <input type="text" name="q" placeholder="Cari produk, jasa, atau toko..."
+                        aria-label="Cari produk, jasa, atau toko" 
+                        value="<?= esc($_GET['q'] ?? '') ?>"
+                        style="flex: 1; border: none; outline: none; background: transparent;"
+                        onkeypress="if(event.key === 'Enter') { this.closest('form').submit(); }" />
+                </form>
 
                 <div class="header-actions">
                     <button class="icon-button" aria-label="Notifications">
                         <img src="/assets/img/logolove.png" alt="" />
                     </button>
+                    <?php 
+                    $session = session();
+                    $userSession = $session->get('user');
+                    $userName = $userSession['nama'] ?? 'User';
+                    $userPhoto = !empty($userSession['foto_user']) ? base_url($userSession['foto_user']) : base_url('assets/img/logo.png');
+                    ?>
                     <a href="<?php echo base_url('profile'); ?>" class="profile" aria-label="Profil Saya">
-                        <img class="profile__photo" src="/assets/img/logo.png" alt="King Hafiz" />
-                        <span>King Hafiz</span>
+                        <img class="profile__photo" src="<?= esc($userPhoto) ?>" alt="<?= esc($userName) ?>" />
+                        <span><?= esc($userName) ?></span>
                     </a>
                 </div>
             </div>

@@ -66,10 +66,10 @@
 
 .category-grid .category-card {
   flex-shrink: 0;
-  min-width: clamp(120px, 20vw, 185px);
-  max-width: clamp(120px, 20vw, 185px);
+  min-width: clamp(140px, 18vw, 200px);
+  max-width: clamp(140px, 18vw, 200px);
   overflow: visible;
-  padding: clamp(6px, 1.5vw, 10px);
+  padding: clamp(6px, 1.5vw, 12px);
   box-sizing: border-box;
 }
 
@@ -455,8 +455,8 @@
   }
 
   .category-grid .category-card {
-    min-width: 120px;
-    max-width: 120px;
+    min-width: 140px;
+    max-width: 160px;
   }
 
   .flash-sale {
@@ -515,8 +515,8 @@
   }
 
   .category-grid .category-card {
-    min-width: 100px;
-    max-width: 100px;
+    min-width: 110px;
+    max-width: 130px;
   }
 
   .flash-sale {
